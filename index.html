@@ -282,11 +282,12 @@
   ol.tasks { margin: 0; padding-inline-start: 20px; }
 
   /* signature block, like the template's role/name cells */
-  .sign-row { display: flex; justify-content: center; margin-top: 6px; }
+  .sign-row { display: flex; justify-content: space-between; align-items: stretch; gap: 10px; margin-top: 18px; }
   .sign-box {
+    flex: 1 1 0;
     border: 1.5px solid var(--line);
     border-radius: 10px;
-    padding: 10px 26px;
+    padding: 10px 12px;
     text-align: center;
   }
   .sign-role { font-size: .78rem; color: var(--ink-soft); margin-bottom: 4px; }
@@ -320,7 +321,7 @@
     .wrap { padding: 0; max-width: none; }
     .report-card { box-shadow: none; border: 1px solid #ccc; margin-bottom: 0; }
     .evidence-page { page-break-before: always; margin-top: 0; }
-    .box-section, .info-card, .evidence-cell { break-inside: avoid; }
+    .box-section, .info-card, .evidence-cell, .sign-row { break-inside: avoid; }
     .no-print { display: none !important; }
   }
 </style>
@@ -453,10 +454,18 @@
           <p id="rEvidenceText">—</p>
         </div>
 
-        <div class="sign-row">
+        <div class="sign-row" id="signRow">
+          <div class="sign-box">
+            <div class="sign-role">مدير المدرسة</div>
+            <div class="sign-name">الأستاذ سامي الحسني</div>
+          </div>
           <div class="sign-box">
             <div class="sign-role">منسق التطوع</div>
             <div class="sign-name">الأستاذ محمد المصعبي</div>
+          </div>
+          <div class="sign-box">
+            <div class="sign-role">وكيل الشؤون التعليمية</div>
+            <div class="sign-name">الأستاذ فهد الشهري</div>
           </div>
         </div>
       </div>
@@ -693,12 +702,16 @@ document.getElementById('buildBtn').addEventListener('click', ()=>{
 
   const evidencePage = document.getElementById('evidencePage');
   const rEvidenceImgs = document.getElementById('rEvidenceImgs');
+  const signRow = document.getElementById('signRow');
   if(evidenceImages.length){
     rEvidenceImgs.innerHTML = evidenceImages.map((src,i)=>`<div class="evidence-cell"><img src="${src}"><div class="evidence-cap">شاهد ${i+1}</div></div>`).join('');
     evidencePage.style.display = "block";
+    // signatures go at the very end of the last page
+    rEvidenceImgs.after(signRow);
   } else {
     rEvidenceImgs.innerHTML = "";
     evidencePage.style.display = "none";
+    document.getElementById('rEvidenceSection').after(signRow);
   }
 
   document.getElementById('rDate').textContent = formatDateForDisplay(reportDateInput.value);
