@@ -381,7 +381,7 @@
           <input type="text" id="oppDays">
         </div>
         <div class="field">
-          <label for="oppHours">عدد الساعات في اليوم</label>
+          <label for="oppHours">إجمالي عدد الساعات</label>
           <input type="text" id="oppHours">
         </div>
       </div>
@@ -445,7 +445,7 @@
           <div class="info-card"><span class="info-icon">🧑‍🤝‍🧑</span><div><div class="info-val" id="rVol">—</div><div class="info-lbl">عدد المتطوعين</div></div></div>
           <div class="info-card"><span class="info-icon">⭐</span><div><div class="info-val" id="rLevel">—</div><div class="info-lbl">مستوى التطوع</div></div></div>
           <div class="info-card"><span class="info-icon">📆</span><div><div class="info-val" id="rDays">—</div><div class="info-lbl">عدد الأيام</div></div></div>
-          <div class="info-card"><span class="info-icon">⏱</span><div><div class="info-val" id="rHours">—</div><div class="info-lbl">الساعات اليومية</div></div></div>
+          <div class="info-card"><span class="info-icon">⏱</span><div><div class="info-val" id="rHours">—</div><div class="info-lbl">إجمالي الساعات</div></div></div>
           <div class="info-card"><span class="info-icon">🏫</span><div><div class="info-val" id="rSchool2">—</div><div class="info-lbl">المدرسة</div></div></div>
         </div>
 
@@ -589,7 +589,34 @@ function fillEditableFields(o){
   oppSkills.value = o ? (o.skills || []).join("، ") : "";
   oppTasks.value = o ? (o.tasks || []).join("\n") : "";
   oppDays.value = o ? (o.days || "") : "";
-  oppHours.value = o ? (o.hours || "") : "";
+  oppHours.value = o ? totalHoursText(o.days, o.hours) : "";
+}
+
+// total hours = days × hours per day; for a range like "1-5 أيام" the upper bound is used
+function countDays(daysText){
+  const nums = (daysText || "").match(/\d+/g);
+  if(nums) return Math.max(...nums.map(Number));
+  if(/يومين|يومان/.test(daysText)) return 2;
+  if(/يوم/.test(daysText)) return 1;
+  return 0;
+}
+function hoursPerDay(hoursText){
+  const first = (hoursText || "").split("/")[0];
+  const m = first.match(/\d+/);
+  if(m) return Number(m[0]);
+  if(/ساعتين|ساعتان/.test(first)) return 2;
+  if(/ساعة/.test(first)) return 1;
+  return 0;
+}
+function formatHours(n){
+  if(n === 1) return "ساعة واحدة";
+  if(n === 2) return "ساعتان";
+  if(n <= 10) return n + " ساعات";
+  return n + " ساعة";
+}
+function totalHoursText(daysText, hoursText){
+  const total = countDays(daysText) * hoursPerDay(hoursText);
+  return total ? formatHours(total) : "";
 }
 
 function showFieldsUI(show){
