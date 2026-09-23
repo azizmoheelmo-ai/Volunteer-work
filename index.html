@@ -235,6 +235,7 @@
   /* info card grid, like the template's icon/value cards */
   .info-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 18px; }
   @media (max-width: 480px) { .info-grid { grid-template-columns: 1fr 1fr; } }
+  .period-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: -8px 0 18px; }
   .info-card {
     display: flex; align-items: center; gap: 8px;
     border: 1.5px solid var(--blue);
@@ -393,6 +394,16 @@
       <label for="reportDate">تاريخ التقرير <span class="auto-badge">تلقائي — قابل للتعديل</span></label>
       <input type="date" id="reportDate">
     </div>
+    <div class="two-col">
+      <div class="field">
+        <label for="startDate">تاريخ بداية الفرصة</label>
+        <input type="date" id="startDate">
+      </div>
+      <div class="field">
+        <label for="endDate">تاريخ نهاية الفرصة</label>
+        <input type="date" id="endDate">
+      </div>
+    </div>
     <div class="field">
       <label for="volCount">عدد المتطوعين</label>
       <input type="number" id="volCount" min="0" placeholder="مثال: 12">
@@ -436,6 +447,11 @@
           <div class="info-card"><span class="info-icon">📆</span><div><div class="info-val" id="rDays">—</div><div class="info-lbl">عدد الأيام</div></div></div>
           <div class="info-card"><span class="info-icon">⏱</span><div><div class="info-val" id="rHours">—</div><div class="info-lbl">الساعات اليومية</div></div></div>
           <div class="info-card"><span class="info-icon">🏫</span><div><div class="info-val" id="rSchool2">—</div><div class="info-lbl">المدرسة</div></div></div>
+        </div>
+
+        <div class="period-row">
+          <div class="info-card"><span class="info-icon">🟢</span><div><div class="info-val" id="rStart">—</div><div class="info-lbl">تاريخ بداية الفرصة</div></div></div>
+          <div class="info-card"><span class="info-icon">🏁</span><div><div class="info-val" id="rEnd">—</div><div class="info-lbl">تاريخ نهاية الفرصة</div></div></div>
         </div>
 
         <div class="box-section box-blue">
@@ -623,6 +639,11 @@ const reportDateInput = document.getElementById('reportDate');
   reportDateInput.value = iso;
 })();
 
+// end date can't be before start date
+document.getElementById('startDate').addEventListener('change', e=>{
+  document.getElementById('endDate').min = e.target.value;
+});
+
 // ---------- evidence images ----------
 let evidenceImages = [];
 const thumbs = document.getElementById('thumbs');
@@ -716,6 +737,8 @@ document.getElementById('buildBtn').addEventListener('click', ()=>{
   }
 
   document.getElementById('rDate').textContent = formatDateForDisplay(reportDateInput.value);
+  document.getElementById('rStart').textContent = formatDateForDisplay(document.getElementById('startDate').value) || "—";
+  document.getElementById('rEnd').textContent = formatDateForDisplay(document.getElementById('endDate').value) || "—";
 
   reportSection.style.display = "block";
   afterBuildRow.style.display = "flex";
@@ -735,6 +758,8 @@ document.getElementById('resetBtn').addEventListener('click', ()=>{
   fillEditableFields(null);
   document.getElementById('volCount').value = "";
   document.getElementById('evidenceText').value = "";
+  document.getElementById('startDate').value = "";
+  document.getElementById('endDate').value = "";
   evidenceImages = [];
   renderThumbs();
   updateBuildBtn();
