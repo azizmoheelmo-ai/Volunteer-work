@@ -316,15 +316,46 @@
 
   footer.note { text-align: center; font-size: .76rem; color: var(--ink-soft); margin-top: 6px; }
 
+  /* Print / Save as PDF.
+     Safari (WebKit) clips absolutely positioned content across pages and ignores
+     break-inside inside grid/flex layouts, so the print layout avoids both:
+     the report stays in normal flow, and cards/images become inline-blocks,
+     which are never split between pages. */
+  @page { size: A4; margin: 10mm; }
   @media print {
-    body * { visibility: hidden; }
-    #report, #report * { visibility: visible; }
-    #report { display: block !important; position: absolute; inset: 0; padding: 0; }
-    .wrap { padding: 0; max-width: none; }
-    .report-card { box-shadow: none; border: 1px solid #ccc; margin-bottom: 0; }
-    .evidence-page { page-break-before: always; margin-top: 0; }
-    .box-section, .info-card, .evidence-cell, .sign-row { break-inside: avoid; }
-    .no-print { display: none !important; }
+    * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    html, body { background: #fff !important; }
+    .wrap { padding: 0; margin: 0; max-width: none; }
+    .wrap > *:not(#report) { display: none !important; }
+    #report { display: block !important; }
+
+    .report-card { box-shadow: none; border: 1px solid #ccc; border-radius: 0; overflow: visible; margin: 0; }
+    .evidence-page { page-break-before: always; break-before: page; }
+    .rpt-topbar, .rpt-titlebar { page-break-after: avoid; break-after: avoid; }
+
+    .info-grid, .period-row, .evidence-grid, .sign-row { display: block; font-size: 0; }
+    .info-grid, .period-row { margin: 0 0 8px; }
+    .info-grid .info-card, .period-row .info-card { display: inline-flex; vertical-align: top; }
+    .evidence-cell, .sign-box {
+      display: inline-block;
+      vertical-align: top;
+    }
+    .info-card, .evidence-cell, .sign-box { font-size: 1rem; }
+    .info-grid .info-card { width: calc((100% - 20px) / 3); margin: 0 0 10px 10px; }
+    .info-grid .info-card:nth-child(3n) { margin-left: 0; }
+    .period-row .info-card { width: calc((100% - 10px) / 2); margin: 0 0 10px 10px; }
+    .period-row .info-card:nth-child(2n) { margin-left: 0; }
+    .evidence-cell { width: calc((100% - 12px) / 2); margin: 0 0 12px 12px; }
+    .evidence-cell:nth-child(2n) { margin-left: 0; }
+    .sign-row { margin-top: 18px; }
+    .sign-box { width: calc((100% - 20px) / 3); margin-left: 10px; text-align: center; }
+    .sign-box:last-child { margin-left: 0; }
+
+    .box-section, .info-card, .evidence-cell, .sign-row, .sign-box, ol.tasks li {
+      page-break-inside: avoid; break-inside: avoid;
+    }
+    .box-section h3, .evidence-header { page-break-after: avoid; break-after: avoid; }
+    p, li { orphans: 3; widows: 3; }
   }
 </style>
 </head>
