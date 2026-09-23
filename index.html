@@ -321,6 +321,9 @@
      break-inside inside grid/flex layouts, so the print layout avoids both:
      the report stays in normal flow, and cards/images become inline-blocks,
      which are never split between pages. */
+  /* used only for a moment by fitForPrint() to measure at the printed width */
+  #report.fit-measure { width: 718px !important; }
+  #report.fit-measure .info-grid { grid-template-columns: repeat(3, 1fr); }
   @page { size: A4; margin: 10mm; }
   @media print {
     * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
@@ -345,8 +348,16 @@
     .info-grid .info-card:nth-child(3n) { margin-left: 0; }
     .period-row .info-card { width: calc((100% - 10px) / 2); margin: 0 0 10px 10px; }
     .period-row .info-card:nth-child(2n) { margin-left: 0; }
+    /* page fitting: fitForPrint() sets the zoom, image height and column count */
+    #mainPage { zoom: var(--fit-main, 1); }
+    .evidence-cell img { height: var(--ev-img-h, 150px); }
     .evidence-cell { width: calc((100% - 12px) / 2); margin: 0 0 12px 12px; }
-    .evidence-cell:nth-child(2n) { margin-left: 0; }
+    .evidence-grid.cols-1 .evidence-cell { width: 100%; margin-left: 0; }
+    .evidence-grid.cols-2 .evidence-cell:nth-child(2n) { margin-left: 0; }
+    .evidence-grid.cols-3 .evidence-cell { width: calc((100% - 24px) / 3); }
+    .evidence-grid.cols-3 .evidence-cell:nth-child(3n) { margin-left: 0; }
+    .evidence-grid.cols-4 .evidence-cell { width: calc((100% - 36px) / 4); }
+    .evidence-grid.cols-4 .evidence-cell:nth-child(4n) { margin-left: 0; }
     .sign-row { margin-top: 18px; }
     .sign-box { width: calc((100% - 20px) / 3); margin-left: 10px; text-align: center; }
     .sign-box:last-child { margin-left: 0; }
@@ -354,6 +365,8 @@
     .box-section, .info-card, .evidence-cell, .sign-row, .sign-box, ol.tasks li {
       page-break-inside: avoid; break-inside: avoid;
     }
+    /* very tall boxes may continue on the next page instead of leaving page 1 half empty */
+    .box-section.can-split { page-break-inside: auto; break-inside: auto; }
     .box-section h3, .evidence-header { page-break-after: avoid; break-after: avoid; }
     p, li { orphans: 3; widows: 3; }
   }
@@ -457,7 +470,7 @@
   </div>
 
   <section id="report">
-    <div class="report-card">
+    <div class="report-card" id="mainPage">
       <div class="rpt-topbar">
         <div class="rpt-brand">
           <div class="mark" aria-hidden="true"></div>
@@ -801,9 +814,73 @@ document.getElementById('buildBtn').addEventListener('click', ()=>{
   reportSection.style.display = "block";
   afterBuildRow.style.display = "flex";
   reportSection.scrollIntoView({behavior:'smooth', block:'start'});
+  fitForPrint();
+  if(document.fonts && document.fonts.ready) document.fonts.ready.then(fitForPrint);
 });
 
-document.getElementById('printBtn').addEventListener('click', ()=> window.print());
+// ---------- fit the printout to at most two A4 pages ----------
+// A4 minus the 10mm @page margins, in CSS px, with headroom for browser headers/footers
+const PRINT_W = 718;
+const PRINT_H = 1047 * 0.94;
+const MIN_ZOOM = 0.75;
+
+function fitForPrint(){
+  if(reportSection.style.display === "none") return;
+  const mainPage = document.getElementById('mainPage');
+  const evidencePage = document.getElementById('evidencePage');
+  const grid = document.getElementById('rEvidenceImgs');
+  const hasEvidence = evidencePage.style.display !== "none";
+
+  reportSection.classList.add('fit-measure');
+
+  // page 1: shrink a little when it runs slightly past one page (e.g. 1¼ pages -> 1 page)
+  const mainH = mainPage.offsetHeight;
+  let zoom = 1;
+  if(mainH > PRINT_H){
+    zoom = PRINT_H / mainH;
+    if(zoom < MIN_ZOOM){
+      // too long for one page: with no evidence page it may take two pages
+      zoom = hasEvidence ? MIN_ZOOM : Math.max(MIN_ZOOM, Math.min(1, PRINT_H * 1.85 / mainH));
+    }
+  }
+  mainPage.querySelectorAll('.box-section').forEach(box=>{
+    box.classList.toggle('can-split', box.offsetHeight * zoom > PRINT_H * 0.35);
+  });
+
+  // evidence page: pick the column count and image height that fill one page
+  let cols = 2, imgH = 150;
+  if(hasEvidence){
+    const n = grid.children.length;
+    const cap = grid.querySelector('.evidence-cap');
+    const capH = (cap ? cap.offsetHeight : 26) + 3;
+    const gap = 12;
+    const innerW = grid.clientWidth;
+    const availH = PRINT_H - (evidencePage.offsetHeight - grid.offsetHeight) - 4;
+    let best = -1;
+    for(const c of (n === 1 ? [1] : [2, 3, 4])){
+      const rows = Math.ceil(n / c);
+      const cellW = (innerW - (c - 1) * gap) / c;
+      const h = Math.min(cellW * 0.75, 340, (availH - rows * (capH + gap)) / rows);
+      if(h > best + 1){ best = h; cols = c; }
+    }
+    imgH = Math.max(60, Math.floor(best));
+  }
+
+  reportSection.classList.remove('fit-measure');
+
+  document.documentElement.style.setProperty('--fit-main', zoom.toFixed(3));
+  document.documentElement.style.setProperty('--ev-img-h', imgH + 'px');
+  grid.classList.remove('cols-1', 'cols-2', 'cols-3', 'cols-4');
+  grid.classList.add('cols-' + cols);
+}
+window.addEventListener('beforeprint', fitForPrint);
+if(window.matchMedia){
+  const mq = window.matchMedia('print');
+  const onChange = e => { if(e.matches) fitForPrint(); };
+  mq.addEventListener ? mq.addEventListener('change', onChange) : mq.addListener(onChange);
+}
+
+document.getElementById('printBtn').addEventListener('click', ()=>{ fitForPrint(); window.print(); });
 document.getElementById('editBtn').addEventListener('click', ()=>{
   reportSection.style.display = "none";
   afterBuildRow.style.display = "none";
