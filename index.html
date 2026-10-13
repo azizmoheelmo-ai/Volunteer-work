@@ -801,9 +801,8 @@ document.getElementById('buildBtn').addEventListener('click', ()=>{
   const days = oppDays.value.trim();
   const hours = oppHours.value.trim();
 
-  const fullTitle = `${name} بـ ${school}`;
-  document.getElementById('rName').textContent = fullTitle;
-  document.getElementById('rNameEvid').textContent = fullTitle;
+  document.getElementById('rName').textContent = name;
+  document.getElementById('rNameEvid').textContent = name;
   document.getElementById('rSchool').textContent = school;
   document.getElementById('rSchool2').textContent = school;
   document.getElementById('rSchool3').textContent = school;
