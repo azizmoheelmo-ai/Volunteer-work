@@ -464,6 +464,22 @@
     </div>
   </section>
 
+  <section class="card no-print">
+    <h2><span class="dot"></span> التواقيع <span class="auto-badge">تُحفظ تلقائياً — قابلة للتعديل</span></h2>
+    <div class="field">
+      <label for="signPrincipal">مدير المدرسة</label>
+      <input type="text" id="signPrincipal" data-default="الأستاذ سامي الحسني">
+    </div>
+    <div class="field">
+      <label for="signCoordinator">منسق التطوع</label>
+      <input type="text" id="signCoordinator" data-default="الأستاذ محمد المصعبي">
+    </div>
+    <div class="field">
+      <label for="signVice">وكيل الشؤون الطلابية</label>
+      <input type="text" id="signVice" data-default="الأستاذ عبدالسلام السلمي">
+    </div>
+  </section>
+
   <div class="btn-row no-print">
     <button class="primary" id="buildBtn" disabled>إنشاء التقرير</button>
     <button class="ghost" id="resetBtn">تفريغ الحقول</button>
@@ -518,15 +534,15 @@
         <div class="sign-row" id="signRow">
           <div class="sign-box">
             <div class="sign-role">مدير المدرسة</div>
-            <div class="sign-name">الأستاذ سامي الحسني</div>
+            <div class="sign-name" id="rSignPrincipal"></div>
           </div>
           <div class="sign-box">
             <div class="sign-role">منسق التطوع</div>
-            <div class="sign-name">الأستاذ محمد المصعبي</div>
+            <div class="sign-name" id="rSignCoordinator"></div>
           </div>
           <div class="sign-box">
             <div class="sign-role">وكيل الشؤون الطلابية</div>
-            <div class="sign-name">الأستاذ عبدالسلام السلمي</div>
+            <div class="sign-name" id="rSignVice"></div>
           </div>
         </div>
       </div>
@@ -715,6 +731,22 @@ document.getElementById('startDate').addEventListener('change', e=>{
   document.getElementById('endDate').min = e.target.value;
 });
 
+// ---------- signature names: editable, remembered on this device ----------
+const SIGN_FIELDS = [
+  ['signPrincipal', 'rSignPrincipal'],
+  ['signCoordinator', 'rSignCoordinator'],
+  ['signVice', 'rSignVice'],
+];
+SIGN_FIELDS.forEach(([inputId])=>{
+  const input = document.getElementById(inputId);
+  let saved = null;
+  try { saved = localStorage.getItem('vw-' + inputId); } catch(e){}
+  input.value = saved !== null ? saved : input.dataset.default;
+  input.addEventListener('input', ()=>{
+    try { localStorage.setItem('vw-' + inputId, input.value); } catch(e){}
+  });
+});
+
 // ---------- evidence images ----------
 let evidenceImages = [];
 const thumbs = document.getElementById('thumbs');
@@ -776,6 +808,9 @@ document.getElementById('buildBtn').addEventListener('click', ()=>{
   document.getElementById('rSchool2').textContent = school;
   document.getElementById('rSchool3').textContent = school;
   document.getElementById('rDesc').textContent = desc || "—";
+  SIGN_FIELDS.forEach(([inputId, outId])=>{
+    document.getElementById(outId).textContent = document.getElementById(inputId).value.trim() || "—";
+  });
   document.getElementById('rDays').textContent = days || "—";
   document.getElementById('rHours').textContent = hours || "—";
   document.getElementById('rVol').textContent = vol || "—";
