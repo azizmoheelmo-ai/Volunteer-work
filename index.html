@@ -419,8 +419,8 @@
       <input type="text" id="customName" placeholder="مثال: مسؤول لوحة الإعلانات">
     </div>
     <div class="field">
-      <label for="schoolName">اسم المدرسة</label>
-      <input type="text" id="schoolName" value="ثانوية بدر">
+      <label for="schoolName">اسم المدرسة <span class="auto-badge">يُحفظ تلقائياً</span></label>
+      <input type="text" id="schoolName" data-default="" placeholder="اكتب اسم مدرستك، مثال: ثانوية بدر">
     </div>
   </section>
 
@@ -761,13 +761,13 @@ document.getElementById('startDate').addEventListener('change', e=>{
   document.getElementById('endDate').min = e.target.value;
 });
 
-// ---------- signature names: editable, remembered on this device ----------
+// ---------- school and signature names: editable, remembered on this device ----------
 const SIGN_FIELDS = [
   ['signPrincipal', 'rSignPrincipal'],
   ['signCoordinator', 'rSignCoordinator'],
   ['signVice', 'rSignVice'],
 ];
-SIGN_FIELDS.forEach(([inputId])=>{
+['schoolName', ...SIGN_FIELDS.map(([inputId])=>inputId)].forEach(inputId=>{
   const input = document.getElementById(inputId);
   let saved = null;
   try { saved = localStorage.getItem('vw-' + inputId); } catch(e){}
