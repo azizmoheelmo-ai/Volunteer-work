@@ -623,8 +623,47 @@ const OPPS = [
   {cat:"رسمية", name:"منظم للحفل السنوي", level:"عام", desc:"استقبال الحضور وتنظيم دخولهم إلى الأماكن المخصصة لهم في الحفل السنوي.", skills:["القيادة","التنظيم","تعزيز الهوية الوطنية"], tasks:["ارتداء الزي المخصص للمنظمين.","تجهيز المكان المخصص لاستقبال الحضور.","استقبال وتنظيم الحضور وتوجيههم."], days:"يوم واحد", hours:"5 ساعات"},
 ];
 
+// ---------- opportunities added by link (from the Claude connector), kept on this device ----------
+const CUSTOM_KEY = 'vw-custom-opps';
+function loadCustomOpps(){
+  try { const a = JSON.parse(localStorage.getItem(CUSTOM_KEY) || '[]'); return Array.isArray(a) ? a : []; }
+  catch(e){ return []; }
+}
+function saveCustomOpps(list){
+  try { localStorage.setItem(CUSTOM_KEY, JSON.stringify(list)); } catch(e){}
+}
+function cleanOpp(o){
+  const t = (v, n)=> typeof v === 'string' ? v.trim().slice(0, n) : '';
+  const a = (v, n, m)=> Array.isArray(v) ? v.map(x=>t(x, m)).filter(Boolean).slice(0, n) : [];
+  const name = t(o && o.name, 120);
+  if(!name) return null;
+  return {cat:"فرصي", custom:true, name, level:t(o.level, 20), desc:t(o.desc, 600),
+          skills:a(o.skills, 8, 60), tasks:a(o.tasks, 10, 200), days:t(o.days, 40), hours:t(o.hours, 40)};
+}
+let addedMsg = "";
+(function importFromLink(){
+  const params = new URLSearchParams(location.search);
+  const raw = params.get('add');
+  if(raw){
+    try {
+      const b64 = raw.replace(/-/g,'+').replace(/_/g,'/');
+      const bytes = Uint8Array.from(atob(b64), c=>c.charCodeAt(0));
+      const o = cleanOpp(JSON.parse(new TextDecoder().decode(bytes)));
+      if(o){
+        const list = loadCustomOpps().filter(x=>x.name !== o.name);
+        list.push(o);
+        saveCustomOpps(list);
+        addedMsg = "تمت إضافة الفرصة «" + o.name + "» إلى قائمة «فرصي»";
+        window.__addedOppName = o.name;
+      } else addedMsg = "تعذّرت إضافة الفرصة: البيانات غير مكتملة";
+    } catch(e){ addedMsg = "تعذّرت إضافة الفرصة: الرابط غير صحيح"; }
+    history.replaceState(null, '', location.pathname);
+  }
+  loadCustomOpps().map(cleanOpp).filter(Boolean).forEach(o=>OPPS.push(o));
+})();
+
 const sel = document.getElementById('oppSelect');
-const groups = {"أساسية":"الفرص الأساسية", "إضافية":"الفرص الإضافية", "رسمية":"الفرص الرسمية"};
+const groups = {"فرصي":"فرصي (أضفتها بمساعدة كلود)", "أساسية":"الفرص الأساسية", "إضافية":"الفرص الإضافية", "رسمية":"الفرص الرسمية"};
 let placeholder = document.createElement('option');
 placeholder.textContent = "اختر فرصة من القائمة";
 placeholder.value = "";
@@ -640,12 +679,35 @@ Object.keys(groups).forEach(cat=>{
     opt.textContent = o.name;
     og.appendChild(opt);
   });
-  sel.appendChild(og);
+  if(og.children.length) sel.appendChild(og);
 });
 const otherOpt = document.createElement('option');
 otherOpt.value = "OTHER";
 otherOpt.textContent = "أخرى (اكتب اسم الفرصة)";
 sel.appendChild(otherOpt);
+
+// notice + delete button for opportunities added by link
+const oppNotice = document.createElement('div');
+oppNotice.style.cssText = 'margin-top:8px;font-size:.85rem;color:var(--green-deep);font-weight:600;';
+sel.parentNode.appendChild(oppNotice);
+if(addedMsg) oppNotice.textContent = addedMsg;
+const delOppBtn = document.createElement('button');
+delOppBtn.type = 'button';
+delOppBtn.className = 'ghost';
+delOppBtn.textContent = 'حذف هذه الفرصة من قائمتي';
+delOppBtn.style.cssText = 'display:none;margin-top:8px;';
+sel.parentNode.appendChild(delOppBtn);
+delOppBtn.addEventListener('click', ()=>{
+  const [cat, name] = sel.value.split("|");
+  if(cat !== "فرصي" || !confirm('حذف الفرصة «' + name + '» من قائمتك؟')) return;
+  saveCustomOpps(loadCustomOpps().filter(x=>x.name !== name));
+  const i = OPPS.findIndex(x=>x.custom && x.name === name);
+  if(i > -1) OPPS.splice(i, 1);
+  Array.from(sel.options).forEach(op=>{ if(op.value === cat+"|"+name) op.remove(); });
+  sel.querySelectorAll('optgroup').forEach(g=>{ if(!g.children.length) g.remove(); });
+  sel.value = "";
+  sel.dispatchEvent(new Event('change'));
+});
 
 const customNameField = document.getElementById('customNameField');
 const oppEmptyMsg = document.getElementById('oppEmptyMsg');
@@ -702,6 +764,7 @@ function showFieldsUI(show){
 
 sel.addEventListener('change', ()=>{
   const val = sel.value;
+  delOppBtn.style.display = val.startsWith('فرصي|') ? 'inline-flex' : 'none';
   if(val === "OTHER"){
     customNameField.style.display = "block";
     showFieldsUI(true);
@@ -719,6 +782,11 @@ sel.addEventListener('change', ()=>{
   }
   updateBuildBtn();
 });
+
+if(window.__addedOppName){
+  sel.value = "فرصي|" + window.__addedOppName;
+  if(sel.value) sel.dispatchEvent(new Event('change'));
+}
 
 function getOppName(){
   if(sel.value === "OTHER"){
