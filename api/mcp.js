@@ -6,7 +6,8 @@ const TOOL = {
   name: 'create_opportunity',
   description:
     'ينشئ فرصة تطوعية مدرسية ويعيد رابطًا؛ عند فتح الرابط تُضاف الفرصة إلى قائمة "فرصي" في صفحة التطوع على جهاز المستخدم. ' +
-    'اكتب كل الحقول بالعربية الفصحى المختصرة، وبنفس أسلوب الفرص الموجودة في الصفحة.',
+    'اكتب كل الحقول بالعربية الفصحى المختصرة، وبنفس أسلوب الفرص الموجودة في الصفحة. ' +
+    'يمكن أيضًا تعبئة بيانات التقرير كاملة (المدرسة، التواريخ، عدد المتطوعين، وصف الشواهد، التواقيع، وصور الشواهد برابط مباشر) فتُعبَّأ كل خانات الصفحة عند فتح الرابط.',
   inputSchema: {
     type: 'object',
     properties: {
@@ -16,7 +17,21 @@ const TOOL = {
       skills: { type: 'array', items: { type: 'string' }, description: 'المهارات المكتسبة (من 2 إلى 5)' },
       tasks: { type: 'array', items: { type: 'string' }, description: 'مهام المتطوع (من 3 إلى 6)' },
       days: { type: 'string', description: 'عدد الأيام، مثال: 3 أيام' },
-      hours: { type: 'string', description: 'عدد الساعات في اليوم، مثال: ساعتان' }
+      hours: { type: 'string', description: 'عدد الساعات في اليوم، مثال: ساعتان' },
+      school: { type: 'string', description: 'اسم المدرسة، مثال: ثانوية بدر' },
+      report_date: { type: 'string', description: 'تاريخ التقرير بصيغة YYYY-MM-DD' },
+      start_date: { type: 'string', description: 'تاريخ بداية الفرصة بصيغة YYYY-MM-DD' },
+      end_date: { type: 'string', description: 'تاريخ نهاية الفرصة بصيغة YYYY-MM-DD' },
+      volunteers: { type: 'integer', minimum: 0, description: 'عدد المتطوعين' },
+      evidence_text: { type: 'string', description: 'وصف مختصر لما تم تنفيذه وأثره (وصف الشواهد)' },
+      evidence_images: {
+        type: 'array',
+        items: { type: 'string' },
+        description: 'روابط مباشرة لصور الشواهد (https://… وتنتهي بصورة)؛ حتى 12 صورة'
+      },
+      sign_principal: { type: 'string', description: 'اسم مدير المدرسة للتوقيع' },
+      sign_coordinator: { type: 'string', description: 'اسم منسق التطوع للتوقيع' },
+      sign_vice: { type: 'string', description: 'اسم وكيل الشؤون الطلابية للتوقيع' }
     },
     required: ['name', 'desc', 'tasks']
   }
@@ -24,6 +39,12 @@ const TOOL = {
 
 const str = (v, max) => (typeof v === 'string' ? v.trim().slice(0, max) : '');
 const list = (v, n, max) => (Array.isArray(v) ? v.map(x => str(x, max)).filter(Boolean).slice(0, n) : []);
+
+const date = v => (typeof v === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(v.trim()) ? v.trim() : '');
+const imageUrls = v => (Array.isArray(v) ? v : [])
+  .map(x => str(x, 2000))
+  .filter(x => /^https:\/\/[^\s"'<>]+$/i.test(x))
+  .slice(0, 12);
 
 function buildLink(a) {
   const opp = {
@@ -36,6 +57,24 @@ function buildLink(a) {
     hours: str(a.hours, 40)
   };
   if (!opp.name) throw new Error('اسم الفرصة مطلوب');
+
+  const report = {
+    school: str(a.school, 120),
+    reportDate: date(a.report_date),
+    startDate: date(a.start_date),
+    endDate: date(a.end_date),
+    volunteers: Number.isFinite(a.volunteers) && a.volunteers >= 0 ? Math.floor(a.volunteers) : '',
+    evidenceText: str(a.evidence_text, 1000),
+    images: imageUrls(a.evidence_images),
+    signPrincipal: str(a.sign_principal, 80),
+    signCoordinator: str(a.sign_coordinator, 80),
+    signVice: str(a.sign_vice, 80)
+  };
+  Object.keys(report).forEach(k => {
+    if (report[k] === '' || (Array.isArray(report[k]) && !report[k].length)) delete report[k];
+  });
+  if (Object.keys(report).length) opp.report = report;
+
   const data = Buffer.from(JSON.stringify(opp), 'utf8').toString('base64url');
   return { opp, url: SITE + '?add=' + data };
 }

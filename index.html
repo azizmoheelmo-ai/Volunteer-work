@@ -648,8 +648,10 @@ let addedMsg = "";
     try {
       const b64 = raw.replace(/-/g,'+').replace(/_/g,'/');
       const bytes = Uint8Array.from(atob(b64), c=>c.charCodeAt(0));
-      const o = cleanOpp(JSON.parse(new TextDecoder().decode(bytes)));
+      const parsed = JSON.parse(new TextDecoder().decode(bytes));
+      const o = cleanOpp(parsed);
       if(o){
+        window.__linkReport = parsed.report && typeof parsed.report === 'object' ? parsed.report : null;
         const list = loadCustomOpps().filter(x=>x.name !== o.name);
         list.push(o);
         saveCustomOpps(list);
@@ -859,6 +861,35 @@ function renderThumbs(){
     thumbs.appendChild(div);
   });
 }
+
+// ---------- report fields (and evidence images) filled from the link ----------
+(function applyLinkReport(){
+  const r = window.__linkReport;
+  if(!r) return;
+  const t = (v, n)=> typeof v === 'string' ? v.trim().slice(0, n) : '';
+  const setVal = (id, v)=>{
+    if(v === '' || v === undefined || v === null) return;
+    const el = document.getElementById(id);
+    el.value = v;
+    el.dispatchEvent(new Event('input', {bubbles:true})); // remembered fields persist on this device
+    el.dispatchEvent(new Event('change', {bubbles:true}));
+  };
+  const d = v => /^\d{4}-\d{2}-\d{2}$/.test(t(v, 10)) ? t(v, 10) : '';
+  setVal('schoolName', t(r.school, 120));
+  setVal('reportDate', d(r.reportDate));
+  setVal('startDate', d(r.startDate));
+  setVal('endDate', d(r.endDate));
+  if(Number.isFinite(r.volunteers) && r.volunteers >= 0) setVal('volCount', String(Math.floor(r.volunteers)));
+  setVal('evidenceText', t(r.evidenceText, 1000));
+  setVal('signPrincipal', t(r.signPrincipal, 80));
+  setVal('signCoordinator', t(r.signCoordinator, 80));
+  setVal('signVice', t(r.signVice, 80));
+  if(Array.isArray(r.images)){
+    r.images.map(u=>t(u, 2000)).filter(u=>/^https:\/\/[^\s"'<>]+$/i.test(u)).slice(0, 12)
+      .forEach(u=>{ if(!evidenceImages.includes(u)) evidenceImages.push(u); });
+    renderThumbs();
+  }
+})();
 
 // ---------- build report ----------
 const reportSection = document.getElementById('report');
