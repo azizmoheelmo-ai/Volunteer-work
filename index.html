@@ -334,6 +334,8 @@
   /* used only for a moment by fitForPrint() to measure at the printed width */
   #report.fit-measure { width: 718px !important; }
   #report.fit-measure .info-grid { grid-template-columns: repeat(3, 1fr); }
+  .print-help { margin: 12px 0; padding: 12px 14px; border: 1px solid #b7791f; border-radius: 12px; background: rgba(183,121,31,.12); font-size: .9rem; line-height: 1.7; }
+  .print-help button { display: block; margin-top: 8px; }
   @page { size: A4; margin: 10mm; }
   @media print {
     * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
@@ -581,6 +583,10 @@
   <div class="btn-row no-print" id="afterBuildRow" style="display:none;">
     <button class="primary" id="printBtn">🖨 طباعة / حفظ PDF</button>
     <button class="ghost" id="editBtn">تعديل البيانات</button>
+  </div>
+  <div class="no-print print-help" id="printHelp" style="display:none;">
+    الطباعة غير مدعومة داخل هذا المتصفح المدمج (مثل نافذة ChatGPT). انسخ الرابط وافتحه في Safari أو Chrome ثم اضغط «طباعة / حفظ PDF».
+    <button class="ghost" id="copyLinkBtn" type="button">نسخ الرابط</button>
   </div>
 
   <footer class="note no-print">الفرص وفق بنك الفرص التطوعية المدرسية 2025م — الإدارة العامة للمسؤولية المجتمعية والعمل التطوعي</footer>
@@ -1026,7 +1032,29 @@ if(window.matchMedia){
   mq.addEventListener ? mq.addEventListener('change', onChange) : mq.addListener(onChange);
 }
 
-document.getElementById('printBtn').addEventListener('click', ()=>{ fitForPrint(); window.print(); });
+// In-app browsers (e.g. the ChatGPT connector sheet on iOS) ship a WebView where
+// window.print() does nothing. Detect that (no beforeprint within a moment) and
+// tell the user to open the link in Safari instead of leaving a dead button.
+let printFired = false;
+window.addEventListener('beforeprint', ()=>{ printFired = true; });
+const printHelp = document.getElementById('printHelp');
+function showPrintHelp(){ printHelp.style.display = 'block'; printHelp.scrollIntoView({block:'nearest'}); }
+document.getElementById('printBtn').addEventListener('click', ()=>{
+  const y = window.scrollY;
+  printFired = false;
+  printHelp.style.display = 'none';
+  try{ fitForPrint(); window.print(); }catch(e){ showPrintHelp(); return; }
+  window.scrollTo(0, y); // measuring must not move the page
+  setTimeout(()=>{ if(!printFired) showPrintHelp(); }, 1200);
+});
+document.getElementById('copyLinkBtn').addEventListener('click', async ()=>{
+  const btn = document.getElementById('copyLinkBtn');
+  try{ await navigator.clipboard.writeText(location.href); btn.textContent = 'تم نسخ الرابط ✓'; }
+  catch(e){
+    if(navigator.share){ try{ await navigator.share({url: location.href}); }catch(_){} }
+    else prompt('انسخ الرابط وافتحه في Safari:', location.href);
+  }
+});
 document.getElementById('editBtn').addEventListener('click', ()=>{
   reportSection.style.display = "none";
   afterBuildRow.style.display = "none";
