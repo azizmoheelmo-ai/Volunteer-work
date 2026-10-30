@@ -585,8 +585,9 @@
     <button class="ghost" id="editBtn">تعديل البيانات</button>
   </div>
   <div class="no-print print-help" id="printHelp" style="display:none;">
-    الطباعة غير مدعومة داخل هذا المتصفح المدمج (مثل نافذة ChatGPT). انسخ الرابط وافتحه في Safari أو Chrome ثم اضغط «طباعة / حفظ PDF».
-    <button class="ghost" id="copyLinkBtn" type="button">نسخ الرابط</button>
+    الطباعة المباشرة غير مدعومة داخل هذا المتصفح المدمج (مثل نافذة ChatGPT). يمكنك حفظ التقرير كملف PDF من الزر التالي ثم اختيار «حفظ في الملفات» أو «طباعة» من قائمة المشاركة.
+    <button class="primary" id="pdfBtn" type="button">📄 تجهيز ملف PDF</button>
+    <button class="ghost" id="copyLinkBtn" type="button">نسخ رابط الصفحة</button>
   </div>
 
   <footer class="note no-print">الفرص وفق بنك الفرص التطوعية المدرسية 2025م — الإدارة العامة للمسؤولية المجتمعية والعمل التطوعي</footer>
@@ -674,6 +675,8 @@ function cleanOpp(o){
           skills:a(o.skills, 8, 60), tasks:a(o.tasks, 10, 200), days:t(o.days, 40), hours:t(o.hours, 40)};
 }
 let addedMsg = "";
+// the import link is stripped from the address bar below, so keep it for "copy link"
+const ORIGINAL_URL = location.href;
 (function importFromLink(){
   const params = new URLSearchParams(location.search);
   const raw = params.get('add');
@@ -1049,11 +1052,61 @@ document.getElementById('printBtn').addEventListener('click', ()=>{
 });
 document.getElementById('copyLinkBtn').addEventListener('click', async ()=>{
   const btn = document.getElementById('copyLinkBtn');
-  try{ await navigator.clipboard.writeText(location.href); btn.textContent = 'تم نسخ الرابط ✓'; }
+  try{ await navigator.clipboard.writeText(ORIGINAL_URL); btn.textContent = 'تم نسخ الرابط ✓'; }
   catch(e){
-    if(navigator.share){ try{ await navigator.share({url: location.href}); }catch(_){} }
-    else prompt('انسخ الرابط وافتحه في Safari:', location.href);
+    if(navigator.share){ try{ await navigator.share({url: ORIGINAL_URL}); }catch(_){} }
+    else prompt('انسخ الرابط:', ORIGINAL_URL);
   }
+});
+
+// Fallback for WebViews with no print support: render the report to a PDF in the page
+// and hand it to the system share sheet (Save to Files / Print). Two taps on purpose:
+// iOS only allows sharing right after a tap, and rendering can take longer than that.
+function loadScript(src){
+  return new Promise((ok, fail)=>{
+    const el = document.createElement('script');
+    el.src = src; el.onload = ok; el.onerror = ()=>fail(new Error('load ' + src));
+    document.head.appendChild(el);
+  });
+}
+async function buildPdfFile(){
+  if(!window.html2canvas) await loadScript('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js');
+  if(!(window.jspdf && window.jspdf.jsPDF)) await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js');
+  const pages = [document.getElementById('mainPage')];
+  const ev = document.getElementById('evidencePage');
+  if(ev.style.display !== 'none') pages.push(ev);
+  const pdf = new window.jspdf.jsPDF({unit:'mm', format:'a4'});
+  reportSection.classList.add('fit-measure');
+  try{
+    for(let i = 0; i < pages.length; i++){
+      const c = await html2canvas(pages[i], {scale:2, backgroundColor:'#ffffff', useCORS:true});
+      let w = 190, h = c.height * w / c.width;
+      if(h > 277){ h = 277; w = c.width * h / c.height; }
+      if(i) pdf.addPage();
+      pdf.addImage(c.toDataURL('image/jpeg', 0.92), 'JPEG', (210 - w) / 2, 10, w, h);
+    }
+  } finally { reportSection.classList.remove('fit-measure'); }
+  return new File([pdf.output('blob')], 'تقرير-فرصة-تطوعية.pdf', {type:'application/pdf'});
+}
+let pdfFile = null;
+document.getElementById('pdfBtn').addEventListener('click', async ()=>{
+  const btn = document.getElementById('pdfBtn');
+  const y = window.scrollY;
+  if(!pdfFile){
+    btn.disabled = true; btn.textContent = 'جاري التجهيز…';
+    try{ pdfFile = await buildPdfFile(); btn.textContent = '✅ جاهز — اضغط للحفظ أو الطباعة'; }
+    catch(e){ btn.textContent = 'تعذّر التجهيز — افتح الرابط في Safari'; }
+    btn.disabled = false; window.scrollTo(0, y);
+    return;
+  }
+  try{
+    if(navigator.canShare && navigator.canShare({files:[pdfFile]})) await navigator.share({files:[pdfFile]});
+    else {
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(pdfFile); a.download = pdfFile.name;
+      document.body.appendChild(a); a.click(); a.remove();
+    }
+  }catch(e){ /* share sheet dismissed */ }
 });
 document.getElementById('editBtn').addEventListener('click', ()=>{
   reportSection.style.display = "none";
