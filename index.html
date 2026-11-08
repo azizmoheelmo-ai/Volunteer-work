@@ -536,6 +536,13 @@
   .wz-pick small { display: block; margin-top: 4px; font: 400 .75rem var(--font-body); color: var(--ink-soft); }
   .wz-prev { position: relative; width: 100%; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; background: #fff; }
   .wz-prev .ct { position: absolute; top: 0; right: 0; transform-origin: top right; }
+  .wz-list { max-height: 240px; overflow-y: auto; border: 1px solid var(--line); border-radius: 10px; margin-top: 8px; }
+  .wz-list button { display: flex; justify-content: space-between; width: 100%; border: 0; border-bottom: 1px solid var(--line); background: var(--paper-raised); color: var(--ink); padding: 11px 12px; font: 500 .9rem var(--font-body); cursor: pointer; text-align: right; }
+  .wz-list button.on { background: var(--green-pale); font-weight: 700; }
+  .wz-list button small { color: var(--ink-soft); }
+  .wz-row { display: flex; gap: 8px; margin-top: 10px; }
+  .wz-row > * { flex: 1; }
+  .wz-mini { border: 1px solid var(--line); background: var(--paper); color: var(--ink); border-radius: 10px; padding: 10px; font: 600 .85rem var(--font-body); cursor: pointer; }
   .wz-note { margin-top: 10px; font-size: .8rem; color: var(--amber); line-height: 1.7; }
   @media print { .wz-fab, .wz-dim, .wz { display: none !important; } }
 </style>
@@ -773,6 +780,7 @@
     <h4>جولة تفاعلية</h4>
     <button class="wz-opt p" id="wzStart" type="button"><span>📝</span><span>إنشاء تقرير خطوة بخطوة<small>بلاطة لكل سؤال، بدون صفحة طويلة</small></span></button>
     <button class="wz-opt p" id="wzCert" type="button"><span>🏅</span><span>شهادة شكر وتقدير<small>للطالب أو الطالبة المشارك في عمل تطوعي</small></span></button>
+    <button class="wz-opt" id="wzStudents" type="button"><span>👥</span><span>قائمة الطلاب<small>تُحفظ على هذا الجهاز فقط، لتختار منها وتطبع شهادات الفصل كاملاً</small></span></button>
     <button class="wz-opt" id="wzMenuClose" type="button"><span>✕</span><span>إغلاق</span></button>
   </div>
 </div>
@@ -791,6 +799,23 @@
   const fab = $('wzFab'), menu = $('wzMenu'), wz = $('wz'), slot = $('wzSlot'), next = $('wzNext'), prev = $('wzPrev');
   const f = id => $(id).closest('.field');
   const esc = t => String(t == null ? '' : t).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+  // ===== student list (stored on this device only) =====
+  const KEY_STU = 'vw-students';
+  let students = [];
+  try{ const a = JSON.parse(localStorage.getItem(KEY_STU) || '[]'); if(Array.isArray(a)) students = a.filter(x => x && x.n); }catch(e){}
+  const saveStudents = () => { try{ localStorage.setItem(KEY_STU, JSON.stringify(students)); return true; }catch(e){ return false; } };
+  function parseStudents(text){
+    const seen = new Set(), out = [];
+    String(text).split(/\r?\n/).forEach(line => {
+      const parts = line.split(/\t|،|,|\|/).map(x => x.trim());
+      const n = parts[0]; if(!n || seen.has(n + '|' + (parts[1] || ''))) return;
+      seen.add(n + '|' + (parts[1] || '')); out.push({n, c: parts[1] || ''});
+    });
+    return out.slice(0, 3000);
+  }
+  const studentsToText = () => students.map(x => x.c ? x.n + '، ' + x.c : x.n).join('\n');
+  const classesOf = () => [...new Set(students.map(x => x.c).filter(Boolean))];
 
   // ===== certificate of thanks (A4 landscape, ministry identity) =====
   const GEN = {
@@ -819,12 +844,12 @@
     .ct.ls .sig{bottom:34px}.ct.ls .sig b{margin-bottom:22px}
     .ct.pt .sig{left:34px;right:34px;bottom:52px}.ct.pt .sig div{width:168px;font-size:13px}.ct.pt .sig b{font-size:14px;margin-bottom:26px}`;
   const ctStyle = document.createElement('style'); ctStyle.textContent = CERT_CSS + CERT_CSS_P; document.head.appendChild(ctStyle);
-  function certData(){
+  function certData(nameOverride){
     const num = (oppHours.value.match(/\d+/) || [''])[0];
     const d1 = document.getElementById('startDate').value, d2 = document.getElementById('endDate').value;
     return {
       g: GEN[state.gender] || GEN.b,
-      name: state.studentName.trim(),
+      name: (nameOverride != null ? nameOverride : state.studentName).trim(),
       school: document.getElementById('schoolName').value.trim() || 'المدرسة',
       opp: getOppName(),
       hours: oppHours.value.trim(), num,
@@ -873,22 +898,25 @@
     if(pt) return {v:'p', W:604, H:900, scale: sf ? 1 : 1.12, page:'portrait', sf};
     return {v: sf ? 'ls' : 'l', W:1123, H: sf ? 610 : 794, scale:1, page:'landscape', sf};
   }
-  function mountPrint(){
+  function mountPrint(names){
     unmountPrint();
     const c = certCfg();
     const boxW = Math.min(Math.round(c.W * c.scale), c.page === 'landscape' ? 1122 : 794), boxH = Math.min(Math.round(c.H * c.scale), c.page === 'landscape' ? 793 : 1122);
     printHolder = document.createElement('div'); printHolder.id = 'certPrint';
-    printHolder.innerHTML = certHTML(certData(), 'icons/moe-logo.png', c.v);
-    const ct = printHolder.firstChild;
-    ct.style.cssText += ';position:absolute;top:0;right:0;transform-origin:top right;transform:scale(' + c.scale + ')';
+    const list = names && names.length ? names : [null];
+    const d0 = certData();
+    printHolder.innerHTML = list.map(n => '<div class="cpg">' + certHTML(n == null ? d0 : Object.assign({}, d0, {name: n}), 'icons/moe-logo.png', c.v) + '</div>').join('');
+    printHolder.querySelectorAll('.ct').forEach(ct => { ct.style.cssText += ';position:absolute;top:0;right:0;transform-origin:top right;transform:scale(' + c.scale + ')'; });
     printStyle = document.createElement('style');
     printStyle.textContent = '@page{size:A4 ' + c.page + (c.sf ? '' : ';margin:0') + '}#certPrint{display:none}' +
       '@media print{body>*:not(#certPrint){display:none!important}html,body{background:#fff!important;min-height:0!important;height:auto!important}' +
-      '#certPrint{display:block!important;position:relative;width:' + boxW + 'px;height:' + boxH + 'px;overflow:hidden;margin:' + (c.page === 'portrait' && !c.sf ? '16px' : '0') + ' auto 0;direction:rtl}}';
+      '#certPrint{display:block!important;direction:rtl}' +
+      '#certPrint .cpg{position:relative;width:' + boxW + 'px;height:' + boxH + 'px;overflow:hidden;margin:' + (c.page === 'portrait' && !c.sf ? '16px' : '0') + ' auto 0;break-after:page;page-break-after:always}' +
+      '#certPrint .cpg:last-child{break-after:auto;page-break-after:auto}}';
     document.head.appendChild(printStyle); document.body.appendChild(printHolder);
   }
-  function printCert(note){
-    mountPrint();
+  function printCert(note, names){
+    mountPrint(names);
     const font = 'Helvetica Neue W23 for SKY';
     const ready = document.fonts ? Promise.race([document.fonts.load("700 20px '" + font + "'", 'ابجد').then(() => document.fonts.load("400 20px '" + font + "'", 'ابجد')), new Promise(r => setTimeout(r, 2500))]) : Promise.resolve();
     const logo = printHolder.querySelector('img');
@@ -916,7 +944,21 @@
       b.addEventListener('click', () => { state.orient = o; draw(); });
       tog.appendChild(b);
     });
-    wrap.append(tog, box, hint, noteEl); state.noteEl = noteEl;
+    wrap.append(tog, box);
+    if(students.length){
+      const row = document.createElement('div'); row.className = 'wz-row';
+      const sel2 = document.createElement('select');
+      sel2.innerHTML = '<option value="">كل القائمة (' + students.length + ')</option>' + classesOf().map(c => '<option value="' + esc(c) + '">' + esc(c) + ' (' + students.filter(x => x.c === c).length + ')</option>').join('');
+      const bb = document.createElement('button'); bb.type = 'button'; bb.className = 'wz-mini'; bb.textContent = '🖨 طباعة شهادات القائمة';
+      bb.addEventListener('click', () => {
+        const names = students.filter(x => !sel2.value || x.c === sel2.value).map(x => x.n);
+        if(!names.length) return;
+        if(names.length > 30 && !confirm('ستُطبع ' + names.length + ' شهادة. متابعة؟')) return;
+        if(state.noteEl) state.noteEl.hidden = true; printCert(v => { if(state.noteEl) state.noteEl.hidden = !v; }, names);
+      });
+      row.append(sel2, bb); wrap.appendChild(row);
+    }
+    wrap.append(hint, noteEl); state.noteEl = noteEl;
     requestAnimationFrame(draw);
     return wrap;
   }
@@ -938,16 +980,53 @@
     }, ok: () => !!state.gender
   };
   const nameStep = {
-    t: () => isG() ? 'ما اسم الطالبة؟' : 'ما اسم الطالب؟', h: () => 'الاسم كما سيُكتب في الشهادة.',
+    t: () => isG() ? 'ما اسم الطالبة؟' : 'ما اسم الطالب؟', h: () => students.length ? 'اختر من قائمتك أو اكتب اسماً آخر.' : 'الاسم كما سيُكتب في الشهادة.',
     build: () => {
-      const w = document.createElement('div'); w.className = 'field';
-      w.innerHTML = '<label for="wzStudent">الاسم الثلاثي</label><input type="text" id="wzStudent" autocomplete="off" placeholder="مثال: محمد بن عبدالله العتيبي">';
+      const w = document.createElement('div');
+      w.innerHTML = '<div class="field"><label for="wzStudent">' + (students.length ? 'ابحث أو اكتب الاسم' : 'الاسم الثلاثي') + '</label><input type="text" id="wzStudent" autocomplete="off" placeholder="مثال: محمد بن عبدالله العتيبي"></div>';
       const i = w.querySelector('input'); i.value = state.studentName;
-      i.addEventListener('input', () => { state.studentName = i.value; refresh(); });
-      setTimeout(() => i.focus(), 50);
+      const box = document.createElement('div'); box.className = 'wz-list'; box.hidden = !students.length;
+      function drawList(){
+        const q = i.value.trim(); box.innerHTML = '';
+        const m = students.filter(x => !q || x.n.includes(q)).slice(0, 60);
+        m.forEach(x => { const b = document.createElement('button'); b.type = 'button'; b.className = x.n === state.studentName ? 'on' : '';
+          b.innerHTML = '<span>' + esc(x.n) + '</span>' + (x.c ? '<small>' + esc(x.c) + '</small>' : '');
+          b.addEventListener('click', () => { state.studentName = x.n; i.value = x.n; drawList(); refresh(); });
+          box.appendChild(b); });
+        box.hidden = !m.length;
+      }
+      i.addEventListener('input', () => { state.studentName = i.value; drawList(); refresh(); });
+      w.appendChild(box); drawList();
+      if(!students.length) setTimeout(() => i.focus(), 50);
       return w;
     }, ok: () => !!state.studentName.trim()
   };
+  const LIST = [{
+    t:'قائمة الطلاب', h:'اكتب كل اسم في سطر، ويمكن إضافة الفصل بعد فاصلة. تُحفظ على هذا الجهاز فقط.', done:true, label:'حفظ القائمة',
+    build: () => {
+      const w = document.createElement('div');
+      w.innerHTML = '<div class="field"><label for="wzList">الأسماء</label><textarea id="wzList" rows="9" placeholder="محمد بن عبدالله العتيبي، 2/أ&#10;خالد بن سعد الحربي، 2/أ"></textarea></div>' +
+        '<div class="wz-note" id="wzCount" style="color:var(--ink-soft)"></div>' +
+        '<div class="wz-row"><label class="wz-mini" style="text-align:center">رفع ملف CSV / نص<input type="file" id="wzFile" accept=".csv,.txt,text/csv,text/plain" hidden></label><button type="button" class="wz-mini" id="wzExp">تصدير</button><button type="button" class="wz-mini" id="wzClr">مسح الكل</button></div>' +
+        '<div class="wz-note" style="color:var(--ink-soft)">من Excel: انسخ عمود الأسماء (ومعه عمود الفصل إن وُجد) والصقه هنا مباشرة.</div>';
+      const ta = w.querySelector('#wzList'), cnt = w.querySelector('#wzCount'); ta.value = studentsToText();
+      const upd = () => { const n = parseStudents(ta.value).length; cnt.textContent = n ? 'عدد الطلاب: ' + n : 'لا توجد أسماء بعد'; };
+      ta.addEventListener('input', upd); upd();
+      w.querySelector('#wzFile').addEventListener('change', async e => {
+        const f = e.target.files[0]; if(!f) return;
+        const buf = await f.arrayBuffer(); let t = new TextDecoder('utf-8').decode(buf);
+        if(t.includes('�')){ try{ t = new TextDecoder('windows-1256').decode(buf); }catch(_){} }
+        ta.value = (ta.value.trim() ? ta.value.trim() + '\n' : '') + t.replace(/^﻿/, ''); upd();
+      });
+      w.querySelector('#wzExp').addEventListener('click', () => {
+        const blob = new Blob(['﻿' + parseStudents(ta.value).map(x => x.c ? x.n + ',' + x.c : x.n).join('\n')], {type:'text/csv;charset=utf-8'});
+        const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'students.csv'; document.body.appendChild(a); a.click(); a.remove();
+      });
+      w.querySelector('#wzClr').addEventListener('click', () => { if(confirm('مسح كل الأسماء من هذه القائمة؟')){ ta.value = ''; upd(); } });
+      return w;
+    },
+    action: () => { const ta = $('wzList'); students = parseStudents(ta ? ta.value : ''); if(!saveStudents()) alert('تعذّر الحفظ على هذا الجهاز.'); close(); }
+  }];
   const oppStep = {t:'ما الفرصة التطوعية؟', h:'اختر من الفرص الجاهزة لتُعبّأ بياناتها تلقائياً، أو اختر «أخرى» واكتب اسمها.', els:()=>[f('oppSelect'), $('customNameField')], ok:()=>!!getOppName()};
   const REPORT = [
     oppStep,
@@ -984,7 +1063,7 @@
     if(st.build) slot.appendChild(st.build());
     (st.els ? st.els() : []).forEach(el => { moved.push({el, parent: el.parentNode, next: el.nextSibling}); slot.appendChild(el); });
     $('wzCnt').textContent = st.done ? 'جاهز' : 'الخطوة ' + (i + 1) + ' من ' + (STEPS.length - 1);
-    $('wzBar').style.width = (i / (STEPS.length - 1) * 100) + '%';
+    $('wzBar').style.width = (i / Math.max(1, STEPS.length - 1) * 100) + '%';
     prev.disabled = i === 0;
     next.textContent = st.done ? st.label : 'التالي ‹';
     refresh(); wz.querySelector('.wz-body').scrollTop = 0;
@@ -997,6 +1076,7 @@
   menu.addEventListener('click', e => { if(e.target === menu) menu.hidden = true; });
   $('wzStart').addEventListener('click', () => open(REPORT));
   $('wzCert').addEventListener('click', () => { state.gender = ''; open(CERT); });
+  $('wzStudents').addEventListener('click', () => open(LIST));
   $('wzClose').addEventListener('click', close);
   prev.addEventListener('click', () => idx > 0 && show(idx - 1));
   next.addEventListener('click', () => { const st = STEPS[idx]; st.done ? st.action() : show(idx + 1); });
