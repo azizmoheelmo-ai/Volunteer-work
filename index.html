@@ -813,6 +813,10 @@
     .ct.pt{width:604px;height:900px}
     .ct.pt .fr{inset:10px;border-radius:32px;border-width:4px}.ct.pt .fr2{inset:24px;border-radius:22px}
     .ct.pt .body{font-size:23px;line-height:2.15;padding:0 44px}
+    .ct.ls{height:610px}
+    .ct.ls .fr{inset:18px;border-radius:38px}.ct.ls .fr2{inset:34px;border-radius:26px}
+    .ct.ls .body{font-size:23px;line-height:1.85}
+    .ct.ls .sig{bottom:34px}.ct.ls .sig b{margin-bottom:22px}
     .ct.pt .sig{left:34px;right:34px;bottom:52px}.ct.pt .sig div{width:168px;font-size:13px}.ct.pt .sig b{font-size:14px;margin-bottom:26px}`;
   const ctStyle = document.createElement('style'); ctStyle.textContent = CERT_CSS + CERT_CSS_P; document.head.appendChild(ctStyle);
   function certData(){
@@ -829,14 +833,16 @@
     };
   }
   let gSeq = 0;
-  function certHTML(d, logoUrl, pt){
+  function certHTML(d, logoUrl, v){
+    const pt = v === 'p', ls = v === 'ls';
     const gid = 'ctg' + (++gSeq);
     const g = d.g, vars = `--dark:${g.dark};--acc:${g.acc};--mut:${g.mut};--g1:${g.g1};--g2:${g.g2}`;
     const line2 = [d.hours ? `بواقع <b>${esc(d.hours)}</b> تطوعية` : '', d.from && d.to ? `خلال الفترة من <b>${esc(d.from)}</b> إلى <b>${esc(d.to)}</b>` : ''].filter(Boolean).join('، ');
-    const nameSize = pt ? (d.name.length > 22 ? 28 : 34) : (d.name.length > 26 ? 34 : 40);
+    const nameSize = pt ? (d.name.length > 22 ? 28 : 34) : ls ? (d.name.length > 26 ? 30 : 36) : (d.name.length > 26 ? 34 : 40);
     const L = pt ? {med:'top:36px;left:50%;margin-left:-50px;width:100px;height:125px', logo:'height:40px;top:46px;right:48px', sch:'top:50px;left:48px;font-size:14px', tt:'top:215px;font-size:46px', bd:'top:305px'}
+                 : ls ? {med:'top:28px;left:50%;margin-left:-50px;width:100px;height:125px', logo:'height:46px;top:50px;right:84px', sch:'top:56px;left:84px;font-size:16px', tt:'top:152px;font-size:48px', bd:'top:222px'}
                  : {med:'top:54px;left:50%;margin-left:-60px;width:120px;height:150px', logo:'height:52px;top:66px;right:90px', sch:'top:72px;left:90px;font-size:16px', tt:'top:222px;font-size:58px', bd:'top:305px'};
-    return `<div class="ct${pt ? ' pt' : ''}" style="${vars}"><div class="ab fr"></div><div class="ab fr2"></div>
+    return `<div class="ct${pt ? ' pt' : ls ? ' ls' : ''}" style="${vars}"><div class="ab fr"></div><div class="ab fr2"></div>
       <svg class="ab" style="${L.med}" viewBox="0 0 120 150"><defs><linearGradient id="${gid}" x1="0" x2="1"><stop offset="0" stop-color="${g.g1}"/><stop offset="1" stop-color="${g.g2}"/></linearGradient></defs>
         <path d="M32 70 L18 146 L48 130 L60 146 L72 130 L102 146 L88 70Z" fill="${g.dark}"/><circle cx="60" cy="52" r="46" fill="url(#${gid})"/><circle cx="60" cy="52" r="37" fill="none" stroke="#fff" stroke-width="2.5" stroke-dasharray="2 6" stroke-linecap="round"/>
         <text x="60" y="${d.num ? 48 : 58}" text-anchor="middle" fill="#fff" font-size="${d.num ? 30 : 22}" font-weight="700" font-family="'Helvetica Neue W23 for SKY',Tahoma">${d.num || 'تطوع'}</text>${d.num ? '<text x="60" y="70" text-anchor="middle" fill="#fff" font-size="15" font-family="\'Helvetica Neue W23 for SKY\',Tahoma">ساعات</text>' : ''}</svg>
@@ -855,19 +861,30 @@
     if(printHolder){ printHolder.remove(); printHolder = null; }
     if(printStyle){ printStyle.remove(); printStyle = null; }
   }
+  // Chrome and Safari print differently, so each gets its own layout:
+  //  - Chrome obeys @page (size + margin 0): the certificate fills the A4 page.
+  //  - Safari (iPhone/iPad/Mac, and Chrome on iOS) ignores @page margins and scales the page content to fit the
+  //    width of the printable area (measured from real iOS PDFs: landscape ~798x452pt, portrait ~553x790pt),
+  //    so the certificate is drawn with an aspect ratio that always fits that area in one page.
+  const isSafari = () => /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1) ||
+    (/Safari/.test(navigator.userAgent) && !/Chrome|Chromium|CriOS|FxiOS|Edg|Android|OPR/.test(navigator.userAgent));
+  function certCfg(){
+    const pt = state.orient === 'portrait', sf = isSafari();
+    if(pt) return {v:'p', W:604, H:900, scale: sf ? 1 : 1.12, page:'portrait', sf};
+    return {v: sf ? 'ls' : 'l', W:1123, H: sf ? 610 : 794, scale:1, page:'landscape', sf};
+  }
   function mountPrint(){
     unmountPrint();
-    const pt = state.orient === 'portrait';
-    // both orientations use the same margins Safari applies (23/25/25mm), so the result is the same in every browser
-    const W = pt ? 604 : 853, H = pt ? 900 : 603, sc = pt ? 1 : 0.76;
+    const c = certCfg();
+    const boxW = Math.min(Math.round(c.W * c.scale), c.page === 'landscape' ? 1122 : 794), boxH = Math.min(Math.round(c.H * c.scale), c.page === 'landscape' ? 793 : 1122);
     printHolder = document.createElement('div'); printHolder.id = 'certPrint';
-    printHolder.innerHTML = certHTML(certData(), 'icons/moe-logo.png', pt);
+    printHolder.innerHTML = certHTML(certData(), 'icons/moe-logo.png', c.v);
     const ct = printHolder.firstChild;
-    ct.style.cssText += ';position:absolute;top:0;right:0;transform-origin:top right;transform:scale(' + sc + ')';
+    ct.style.cssText += ';position:absolute;top:0;right:0;transform-origin:top right;transform:scale(' + c.scale + ')';
     printStyle = document.createElement('style');
-    printStyle.textContent = '@page{size:A4 ' + (pt ? 'portrait' : 'landscape') + ';margin:23mm 25mm 25mm}#certPrint{display:none}' +
-      '@media print{body>*:not(#certPrint){display:none!important}html,body{background:#fff!important}' +
-      '#certPrint{display:block!important;position:relative;width:' + W + 'px;height:' + H + 'px;overflow:hidden;margin:0 auto;direction:rtl}}';
+    printStyle.textContent = '@page{size:A4 ' + c.page + (c.sf ? '' : ';margin:0') + '}#certPrint{display:none}' +
+      '@media print{body>*:not(#certPrint){display:none!important}html,body{background:#fff!important;min-height:0!important;height:auto!important}' +
+      '#certPrint{display:block!important;position:relative;width:' + boxW + 'px;height:' + boxH + 'px;overflow:hidden;margin:' + (c.page === 'portrait' && !c.sf ? '16px' : '0') + ' auto 0;direction:rtl}}';
     document.head.appendChild(printStyle); document.body.appendChild(printHolder);
   }
   function printCert(note){
@@ -887,8 +904,8 @@
     const hint = document.createElement('div'); hint.className = 'wz-note'; hint.style.color = 'var(--ink-soft)';
     hint.textContent = 'في نافذة الطباعة اجعل «الاتجاه» مطابقاً لاختيارك هنا (أفقي أو رأسي). وإن لم تظهر النافذة فافتح الرابط في Safari أو Chrome.';
     function draw(){
-      const pt = state.orient === 'portrait', W = pt ? 604 : 1123, H = pt ? 900 : 794;
-      box.innerHTML = certHTML(certData(), 'icons/moe-logo.png', pt);
+      const c = certCfg(), W = c.W, H = c.H;
+      box.innerHTML = certHTML(certData(), 'icons/moe-logo.png', c.v);
       const ct = box.firstChild, sc = Math.min(1, (box.clientWidth || 300) / W);
       ct.style.transform = 'scale(' + sc + ')'; box.style.height = (H * sc) + 'px';
       tog.querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.o === state.orient));
