@@ -333,11 +333,13 @@
      the report stays in normal flow, and cards/images become inline-blocks,
      which are never split between pages. */
   /* used only for a moment by fitForPrint() to measure at the printed width */
-  #report.fit-measure { width: 718px !important; }
+  #report.fit-measure { width: 604px !important; }
   #report.fit-measure .info-grid { grid-template-columns: repeat(3, 1fr); }
   .print-help { margin: 12px 0; padding: 12px 14px; border: 1px solid #b7791f; border-radius: 12px; background: rgba(183,121,31,.12); font-size: .9rem; line-height: 1.7; }
   .print-help button { display: block; margin-top: 8px; }
-  @page { size: A4; margin: 10mm; }
+  /* iOS Safari ignores @page margins and prints with about 23mm top, 25mm sides and bottom,
+     so those are used everywhere: the printable area is the same ~604x941px in every browser */
+  @page { size: A4; margin: 23mm 25mm 25mm; }
   @media print {
     * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     html, body { background: #fff !important; }
@@ -1108,9 +1110,9 @@ document.getElementById('buildBtn').addEventListener('click', ()=>{
 });
 
 // ---------- fit the printout to at most two A4 pages ----------
-// A4 minus the 10mm @page margins, in CSS px, with headroom for browser headers/footers
-const PRINT_W = 718;
-const PRINT_H = 1047 * 0.76;
+// A4 minus the @page margins above (measured from real iPhone Safari PDFs), in CSS px
+const PRINT_W = 604;
+const PRINT_H = 941 * 0.97;
 const MIN_ZOOM = 0.45;
 
 function fitForPrint(){
@@ -1156,7 +1158,7 @@ function fitForPrint(){
     imgH = Math.max(60, Math.floor(best));
     // if even the smallest images overflow (many evidences / long text), shrink the whole page
     const rows = Math.ceil(n / cols);
-    const total = (PRINT_H - availH) + 4 + rows * (imgH + capH + gap);
+    const total = (PRINT_H - availH) + 4 + 60 + rows * (imgH + capH + gap); // +60: print-only spacing of the signature row
     if(total > PRINT_H) evZoom = Math.max(MIN_ZOOM, PRINT_H / total);
   }
 
