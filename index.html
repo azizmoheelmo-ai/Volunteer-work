@@ -496,6 +496,36 @@
   .style-thumb i { display: block; height: 12px; background: linear-gradient(90deg, #3B83B7, #4CB176); }
   .style-thumb.classic i { background: var(--green-deep); }
   .style-thumb u { display: block; height: 4px; margin: 5px 4px 0; background: #d9e4ee; border-radius: 2px; }
+
+  /* ---------- interactive tour (floating button + tile-by-tile spotlight) ---------- */
+  .tour-fab {
+    position: fixed; left: 14px; bottom: calc(14px + env(safe-area-inset-bottom, 0px)); z-index: 900;
+    display: inline-flex; align-items: center; gap: 6px; padding: 10px 16px;
+    border: 0; border-radius: 999px; cursor: pointer;
+    background: var(--green-deep); color: #fff; font: 700 .9rem var(--font-head);
+    box-shadow: 0 6px 18px -4px rgba(13,43,40,.45);
+  }
+  .tour-fab:active { transform: scale(.97); }
+  .tour-spot {
+    position: absolute; z-index: 1000; pointer-events: none; border-radius: 12px;
+    box-shadow: 0 0 0 9999px rgba(8,24,21,.62), 0 0 0 3px var(--green-bright);
+    transition: top .25s, left .25s, width .25s, height .25s;
+  }
+  .tour-tip {
+    position: fixed; z-index: 1001; left: 12px; right: 12px; bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+    max-width: 440px; margin: 0 auto; padding: 14px 16px 12px;
+    background: var(--paper-raised); color: var(--ink); border: 1px solid var(--line);
+    border-radius: var(--radius); box-shadow: 0 12px 32px -8px rgba(0,0,0,.5);
+    font-family: var(--font-body); direction: rtl;
+  }
+  .tour-tip h4 { margin: 0 0 4px; font: 700 1rem var(--font-head); color: var(--green-deep); }
+  .tour-tip p { margin: 0 0 10px; font-size: .88rem; line-height: 1.7; color: var(--ink-soft); }
+  .tour-nav { display: flex; align-items: center; gap: 8px; }
+  .tour-nav .cnt { flex: 1; font-size: .78rem; color: var(--ink-soft); }
+  .tour-nav button { border: 1px solid var(--line); background: var(--paper); color: var(--ink); border-radius: 10px; padding: 7px 14px; font: 600 .85rem var(--font-body); cursor: pointer; }
+  .tour-nav button.go { background: var(--green-deep); border-color: var(--green-deep); color: #fff; }
+  .tour-nav button:disabled { opacity: .4; cursor: default; }
+  @media print { .tour-fab, .tour-spot, .tour-tip { display: none !important; } }
 </style>
 </head>
 <body>
@@ -725,6 +755,76 @@
     </div>
   </div>
 </div>
+<button class="tour-fab no-print" id="tourFab" type="button" aria-label="جولة تفاعلية">🧭 جولة تفاعلية</button>
+<div class="tour-spot no-print" id="tourSpot" hidden></div>
+<div class="tour-tip no-print" id="tourTip" role="dialog" aria-live="polite" hidden>
+  <h4 id="tourTitle"></h4><p id="tourText"></p>
+  <div class="tour-nav">
+    <span class="cnt" id="tourCnt"></span>
+    <button type="button" id="tourPrev">السابق</button>
+    <button type="button" class="go" id="tourNext">التالي</button>
+    <button type="button" id="tourClose" aria-label="إغلاق">✕</button>
+  </div>
+</div>
+<script>
+// ---------- interactive tour: highlights the page tile by tile ----------
+(function(){
+  const fab = document.getElementById('tourFab'), spot = document.getElementById('tourSpot'),
+        tip = document.getElementById('tourTip'), tTitle = document.getElementById('tourTitle'),
+        tText = document.getElementById('tourText'), tCnt = document.getElementById('tourCnt'),
+        prev = document.getElementById('tourPrev'), next = document.getElementById('tourNext');
+  // [selector, title, text]
+  const STEPS = [
+    ['.wrap > .card:nth-of-type(1)', 'اختيار الفرصة', 'اختر الفرصة التطوعية من القائمة، واكتب اسم مدرستك ليُحفظ تلقائياً.'],
+    ['#oppFields', 'بيانات الفرصة', 'يُعبّأ الوصف والمهارات والمهام تلقائياً بعد اختيار الفرصة، ويمكنك تعديل أي حقل.'],
+    ['.wrap > .card:nth-of-type(3)', 'بيانات التنفيذ', 'التاريخ وفترة الفرصة وعدد المتطوعين ووصف الشواهد وصورها.'],
+    ['.wrap > .card:nth-of-type(4)', 'التوقيعات', 'أسماء مدير المدرسة ومنسق التطوع ووكيل الشؤون الطلابية.'],
+    ['#buildBtn', 'إنشاء التقرير', 'اضغط هنا لإنشاء التقرير. بعدها أعد الجولة لتتعرف على بلاطات التقرير.'],
+    ['.rpt-topbar', 'ترويسة التقرير', 'شعار الوزارة واسم المدرسة.', true],
+    ['.rpt-titlebar', 'اسم الفرصة', 'عنوان الفرصة التي يتناولها التقرير.', true],
+    ['#mainPage .info-grid', 'بلاطات المعلومات', 'التاريخ وعدد المتطوعين والمستوى والأيام والساعات والمدرسة.', true],
+    ['#mainPage .period-row', 'فترة الفرصة', 'تاريخ البداية وتاريخ النهاية.', true],
+    ['#mainPage .box-section:has(#rDesc)', 'وصف الفرصة', 'نبذة عن الفرصة وهدفها.', true],
+    ['#mainPage .box-orange', 'المهارات المكتسبة', 'المهارات التي يكتسبها المتطوع.', true],
+    ['#mainPage .box-section:has(#rTasks)', 'مهام المتطوع', 'قائمة المهام المطلوبة من المتطوع.', true],
+    ['#rEvidenceSection', 'الشواهد', 'وصف ما تم تنفيذه وأثره، وتليه صور الشواهد إن أُضيفت.', true],
+    ['#signRow', 'التوقيعات', 'مواضع اعتماد التقرير.', true],
+    ['#afterBuildRow', 'الطباعة', 'اطبع التقرير أو احفظه PDF، أو ارجع لتعديل البيانات.', true]
+  ];
+  let list = [], idx = 0;
+  const visible = el => el && el.getClientRects().length > 0;
+  function place(){
+    const el = list[idx].el, r = el.getBoundingClientRect();
+    spot.style.top = (r.top + scrollY - 6) + 'px';
+    spot.style.left = (r.left + scrollX - 6) + 'px';
+    spot.style.width = (r.width + 12) + 'px';
+    spot.style.height = (r.height + 12) + 'px';
+  }
+  function show(i){
+    idx = i; const st = list[i];
+    tTitle.textContent = st.title; tText.textContent = st.text;
+    tCnt.textContent = (i + 1) + ' / ' + list.length;
+    prev.disabled = i === 0; next.textContent = i === list.length - 1 ? 'إنهاء' : 'التالي';
+    // keep the tile above the tooltip panel
+    const r = st.el.getBoundingClientRect(), room = innerHeight - 190;
+    scrollBy({top: r.top - Math.max(16, (room - r.height) / 2), behavior: 'smooth'});
+    place(); setTimeout(place, 350);
+  }
+  function start(){
+    list = STEPS.map(([sel, title, text]) => ({el: document.querySelector(sel), title, text}))
+                .filter(s => visible(s.el));
+    if(!list.length) return;
+    spot.hidden = tip.hidden = false; fab.hidden = true; show(0);
+  }
+  function stop(){ spot.hidden = tip.hidden = true; fab.hidden = false; }
+  fab.addEventListener('click', start);
+  prev.addEventListener('click', () => idx > 0 && show(idx - 1));
+  next.addEventListener('click', () => idx < list.length - 1 ? show(idx + 1) : stop());
+  document.getElementById('tourClose').addEventListener('click', stop);
+  addEventListener('resize', () => { if(!tip.hidden) place(); });
+  addEventListener('keydown', e => { if(!tip.hidden && e.key === 'Escape') stop(); });
+})();
+</script>
 <script>
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js').catch(() => {}); });
