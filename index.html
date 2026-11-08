@@ -808,17 +808,7 @@
     .ct .sig{position:absolute;left:90px;right:90px;bottom:58px;display:flex;justify-content:space-around;text-align:center}
     .ct .sig div{width:250px;font-size:16px;color:var(--mut)}.ct .sig b{display:block;color:var(--dark);font-size:17px;margin-bottom:30px}
     .ct .sig i{display:block;border-top:2px solid var(--acc);padding-top:7px;font-style:normal;font-weight:700;color:var(--dark);min-height:34px}`;
-  // Safari (iPhone/iPad/Mac) ignores `@page { size: landscape }` and always prints portrait, so it gets a
-  // portrait layout sized to its real printable area (604px wide, same as the report); others get landscape.
-  const autoPortrait = () => /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1) ||
-    (/Safari/.test(navigator.userAgent) && !/Chrome|Chromium|CriOS|Edg|Android|OPR/.test(navigator.userAgent));
-  const isPortrait = () => state.orient === 'portrait' || (state.orient === 'auto' && autoPortrait());
-  const CERT_CSS_P = `
-    .ct.pt{width:604px;height:900px}
-    .ct.pt .fr{inset:10px;border-radius:32px;border-width:4px}.ct.pt .fr2{inset:24px;border-radius:22px}
-    .ct.pt .body{font-size:23px;line-height:2.15;padding:0 44px}
-    .ct.pt .sig{left:34px;right:34px;bottom:52px}.ct.pt .sig div{width:168px;font-size:13px}.ct.pt .sig b{font-size:14px;margin-bottom:26px}`;
-  const ctStyle = document.createElement('style'); ctStyle.textContent = CERT_CSS + CERT_CSS_P; document.head.appendChild(ctStyle);
+  const ctStyle = document.createElement('style'); ctStyle.textContent = CERT_CSS; document.head.appendChild(ctStyle);
   function certData(){
     const num = (oppHours.value.match(/\d+/) || [''])[0];
     const d1 = document.getElementById('startDate').value, d2 = document.getElementById('endDate').value;
@@ -832,66 +822,62 @@
       n1: document.getElementById('signPrincipal').value.trim(), n2: document.getElementById('signCoordinator').value.trim(), n3: document.getElementById('signVice').value.trim()
     };
   }
-  function certHTML(d, logoUrl, pt){
+  let gSeq = 0;
+  function certHTML(d, logoUrl){
+    const gid = 'ctg' + (++gSeq);
     const g = d.g, vars = `--dark:${g.dark};--acc:${g.acc};--mut:${g.mut};--g1:${g.g1};--g2:${g.g2}`;
     const line2 = [d.hours ? `بواقع <b>${esc(d.hours)}</b> تطوعية` : '', d.from && d.to ? `خلال الفترة من <b>${esc(d.from)}</b> إلى <b>${esc(d.to)}</b>` : ''].filter(Boolean).join('، ');
-    const nameSize = pt ? (d.name.length > 22 ? 28 : 34) : (d.name.length > 26 ? 34 : 40);
-    const L = pt ? {med:'top:36px;left:50%;margin-left:-50px;width:100px;height:125px', logo:'height:40px;top:46px;right:48px', sch:'top:50px;left:48px;font-size:14px', tt:'top:215px;font-size:46px', bd:'top:305px'}
-                 : {med:'top:54px;left:50%;margin-left:-60px;width:120px;height:150px', logo:'height:52px;top:66px;right:90px', sch:'top:72px;left:90px;font-size:16px', tt:'top:222px;font-size:58px', bd:'top:305px'};
-    return `<div class="ct${pt ? ' pt' : ''}" style="${vars}"><div class="ab fr"></div><div class="ab fr2"></div>
-      <svg class="ab" style="${L.med}" viewBox="0 0 120 150"><defs><linearGradient id="ctg" x1="0" x2="1"><stop offset="0" stop-color="${g.g1}"/><stop offset="1" stop-color="${g.g2}"/></linearGradient></defs>
-        <path d="M32 70 L18 146 L48 130 L60 146 L72 130 L102 146 L88 70Z" fill="${g.dark}"/><circle cx="60" cy="52" r="46" fill="url(#ctg)"/><circle cx="60" cy="52" r="37" fill="none" stroke="#fff" stroke-width="2.5" stroke-dasharray="2 6" stroke-linecap="round"/>
+    const nameSize = d.name.length > 26 ? 34 : 40;
+    return `<div class="ct" style="${vars}"><div class="ab fr"></div><div class="ab fr2"></div>
+      <svg class="ab" style="top:54px;left:50%;margin-left:-60px" width="120" height="150" viewBox="0 0 120 150"><defs><linearGradient id="${gid}" x1="0" x2="1"><stop offset="0" stop-color="${g.g1}"/><stop offset="1" stop-color="${g.g2}"/></linearGradient></defs>
+        <path d="M32 70 L18 146 L48 130 L60 146 L72 130 L102 146 L88 70Z" fill="${g.dark}"/><circle cx="60" cy="52" r="46" fill="url(#${gid})"/><circle cx="60" cy="52" r="37" fill="none" stroke="#fff" stroke-width="2.5" stroke-dasharray="2 6" stroke-linecap="round"/>
         <text x="60" y="${d.num ? 48 : 58}" text-anchor="middle" fill="#fff" font-size="${d.num ? 30 : 22}" font-weight="700" font-family="'Helvetica Neue W23 for SKY',Tahoma">${d.num || 'تطوع'}</text>${d.num ? '<text x="60" y="70" text-anchor="middle" fill="#fff" font-size="15" font-family="\'Helvetica Neue W23 for SKY\',Tahoma">ساعات</text>' : ''}</svg>
-      <img class="ab" src="${logoUrl}" style="${L.logo}">
-      <div class="ab" style="${L.sch};color:var(--mut);line-height:1.7">${esc(d.school)}</div>
-      <div class="tt" style="${L.tt};color:var(--dark);font-weight:700">شهادة شكر وتقدير</div>
-      <div class="tt body" style="${L.bd}">تتقدم إدارة <b>${esc(d.school)}</b> بالشكر والتقدير ${g.who}<div class="nm" style="font-size:${nameSize}px">${esc(d.name) || '………………'}</div>
+      <img class="ab" src="${logoUrl}" style="height:52px;top:66px;right:90px">
+      <div class="ab" style="top:72px;left:90px;color:var(--mut);font-size:16px;line-height:1.7">${esc(d.school)}</div>
+      <div class="tt" style="top:222px;color:var(--dark);font-size:58px;font-weight:700">شهادة شكر وتقدير</div>
+      <div class="tt body" style="top:305px">تتقدم إدارة <b>${esc(d.school)}</b> بالشكر والتقدير ${g.who}<div class="nm" style="font-size:${nameSize}px">${esc(d.name) || '………………'}</div>
         على ${g.his} المتميزة في الفرصة التطوعية «<b>${esc(d.opp)}</b>»<br>${line2 ? line2 + '<br>' : ''}راجين ${g.him} دوام التوفيق</div>
       <div class="sig"><div><b>${g.vp}</b><i>${esc(d.n3)}</i></div><div><b>${g.co}</b><i>${esc(d.n2)}</i></div><div><b>${g.pn}</b><i>${esc(d.n1)}</i></div></div></div>`;
   }
   function printCert(note){
-    const d = certData(), base = new URL('.', location.href).href, pt = isPortrait();
-    const font = w => `@font-face{font-family:'Helvetica Neue W23 for SKY';src:url('${base}fonts/HelveticaNeueW23forSKY-${w}.ttf');font-weight:${w === 'Bold' ? 700 : 400}}`;
-    const doc = `<!DOCTYPE html><html lang="ar" dir="rtl"><meta charset="utf-8"><style>${font('Regular')}${font('Bold')}${pt ? '@page{size:A4 portrait;margin:23mm 25mm 25mm}html,body{margin:0;background:#fff;width:604px;height:900px;overflow:hidden}' : '@page{size:A4 landscape;margin:0}html,body{margin:0;background:#fff;width:1123px;height:793px;overflow:hidden}'}${CERT_CSS}${CERT_CSS_P}</style><body>${certHTML(d, base + 'icons/moe-logo.png', pt)}</body></html>`;
-    const fr = document.createElement('iframe');
-    fr.style.cssText = 'position:fixed;left:-9999px;top:0;width:' + (pt ? 700 : 1123) + 'px;height:' + (pt ? 1000 : 794) + 'px;border:0';
+    const d = certData();
+    const font = 'Helvetica Neue W23 for SKY';
+    const holder = document.createElement('div');
+    holder.id = 'certPrint'; holder.innerHTML = certHTML(d, 'icons/moe-logo.png');
+    // landscape A4: the page rule and the "only the certificate" rule live only while printing it, so the report keeps printing portrait
+    const st = document.createElement('style');
+    st.textContent = '@page{size:A4 landscape;margin:0}#certPrint{display:none}' +
+      '@media print{html,body{margin:0!important;padding:0!important;background:#fff!important;width:1123px;height:793px;overflow:hidden}' +
+      'body>*:not(#certPrint){display:none!important}#certPrint{display:block!important;width:1123px;height:793px;overflow:hidden}' +
+      '#certPrint .ct{margin:0}}';
+    document.head.appendChild(st); document.body.appendChild(holder);
     let fired = false;
-    fr.onload = () => {
-      const w = fr.contentWindow;
-      w.addEventListener('beforeprint', () => { fired = true; });
-      const go = () => { try{ w.focus(); w.print(); }catch(e){ note(true); } setTimeout(() => { if(!fired) note(true); }, 1500); };
-      (w.document.fonts ? Promise.race([w.document.fonts.ready, new Promise(r => setTimeout(r, 2500))]) : Promise.resolve()).then(() => setTimeout(go, 200));
-    };
-    fr.srcdoc = doc; document.body.appendChild(fr);
-    setTimeout(() => fr.remove(), 120000);
+    const clean = () => { holder.remove(); st.remove(); removeEventListener('afterprint', clean); };
+    addEventListener('beforeprint', () => { fired = true; }, {once:true});
+    addEventListener('afterprint', clean);
+    const go = () => { try{ window.print(); }catch(e){ note(true); clean(); return; } setTimeout(() => { if(!fired){ note(true); clean(); } }, 1500); };
+    const ready = document.fonts ? Promise.race([document.fonts.load("700 20px '" + font + "'", 'ابجد').then(() => document.fonts.load("400 20px '" + font + "'", 'ابجد')), new Promise(r => setTimeout(r, 2500))]) : Promise.resolve();
+    const logo = holder.querySelector('img');
+    const imgOk = logo && !logo.complete ? new Promise(r => { logo.onload = logo.onerror = r; setTimeout(r, 1500); }) : Promise.resolve();
+    Promise.all([ready, imgOk]).then(() => setTimeout(go, 100));
   }
   function previewNode(){
-    const wrap = document.createElement('div');
-    const tog = document.createElement('div'); tog.className = 'wz-pick'; tog.style.marginBottom = '10px';
     const box = document.createElement('div'); box.className = 'wz-prev';
+    box.innerHTML = certHTML(certData(), 'icons/moe-logo.png');
+    const ct = box.firstChild;
+    requestAnimationFrame(() => {
+      const sc = (box.clientWidth || 300) / 1123;
+      ct.style.transform = 'scale(' + sc + ')'; box.style.height = (794 * sc) + 'px';
+    });
+    const wrap = document.createElement('div'); wrap.appendChild(box);
     const noteEl = document.createElement('div'); noteEl.className = 'wz-note'; noteEl.hidden = true;
     noteEl.textContent = 'الطباعة غير مدعومة داخل هذا المتصفح. انسخ الرابط وافتحه في Safari أو Chrome ثم أعد المحاولة.';
-    const hint = document.createElement('div'); hint.className = 'wz-note'; hint.style.color = 'var(--ink-soft)';
-    function draw(){
-      const pt = isPortrait(), W = pt ? 604 : 1123, H = pt ? 900 : 794;
-      box.innerHTML = certHTML(certData(), 'icons/moe-logo.png', pt);
-      const ct = box.firstChild, sc = Math.min(1, (box.clientWidth || 300) / W);
-      ct.style.transform = 'scale(' + sc + ')'; box.style.height = (H * sc) + 'px';
-      tog.querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.o === (pt ? 'portrait' : 'landscape')));
-      hint.textContent = pt ? 'سفاري يطبع الصفحة بالطول دائماً، لذلك رُتّبت الشهادة لتملأ الصفحة الطولية.' : 'تُطبع الصفحة بالعرض (A4 أفقي).';
-    }
-    [['landscape','بالعرض'],['portrait','بالطول']].forEach(([o, l]) => {
-      const b = document.createElement('button'); b.type = 'button'; b.dataset.o = o; b.textContent = l; b.style.padding = '10px';
-      b.addEventListener('click', () => { state.orient = o; draw(); });
-      tog.appendChild(b);
-    });
-    wrap.append(tog, box, hint, noteEl); state.noteEl = noteEl;
-    requestAnimationFrame(draw);
+    wrap.appendChild(noteEl); state.noteEl = noteEl;
     return wrap;
   }
 
   // ===== wizard steps =====
-  const state = {gender:'', studentName:'', noteEl:null, orient:'auto'};
+  const state = {gender:'', studentName:'', noteEl:null};
   const isG = () => state.gender === 'g';
   const pickStep = {
     t: () => 'شهادة شكر وتقدير لمن؟', h: () => 'اختر لتتغير الصياغة والألوان تلقائياً.',
