@@ -543,6 +543,7 @@
   .wz-row { display: flex; gap: 8px; margin-top: 10px; }
   .wz-row > * { flex: 1; }
   .wz-mini { border: 1px solid var(--line); background: var(--paper); color: var(--ink); border-radius: 10px; padding: 10px; font: 600 .85rem var(--font-body); cursor: pointer; }
+  .new-badge { background: var(--amber); color: #fff; font: 700 .6rem var(--font-body); border-radius: 6px; padding: 1px 6px; margin-right: 4px; }
   .wz-note { margin-top: 10px; font-size: .8rem; color: var(--amber); line-height: 1.7; }
   @media print { .wz-fab, .wz-dim, .wz { display: none !important; } }
 </style>
@@ -780,7 +781,7 @@
     <h4>جولة تفاعلية</h4>
     <button class="wz-opt p" id="wzStart" type="button"><span>📝</span><span>إنشاء تقرير خطوة بخطوة<small>بلاطة لكل سؤال، بدون صفحة طويلة</small></span></button>
     <button class="wz-opt p" id="wzCert" type="button"><span>🏅</span><span>شهادة شكر وتقدير<small>للطالب أو الطالبة المشارك في عمل تطوعي</small></span></button>
-    <button class="wz-opt" id="wzStudents" type="button"><span>👥</span><span>قائمة الطلاب<small>تُحفظ على هذا الجهاز فقط، لتختار منها وتطبع شهادات الفصل كاملاً</small></span></button>
+    <button class="wz-opt" id="wzStudents" type="button"><span>📊</span><span>ساعات الطلاب <b class="new-badge">جديد</b><small>المتابعة وتسجيل الساعات واستيراد الطلاب (على هذا الجهاز)</small></span></button>
     <button class="wz-opt" id="wzMenuClose" type="button"><span>✕</span><span>إغلاق</span></button>
   </div>
 </div>
@@ -800,22 +801,9 @@
   const f = id => $(id).closest('.field');
   const esc = t => String(t == null ? '' : t).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 
-  // ===== student list (stored on this device only) =====
-  const KEY_STU = 'vw-students';
-  let students = [];
-  try{ const a = JSON.parse(localStorage.getItem(KEY_STU) || '[]'); if(Array.isArray(a)) students = a.filter(x => x && x.n); }catch(e){}
-  const saveStudents = () => { try{ localStorage.setItem(KEY_STU, JSON.stringify(students)); return true; }catch(e){ return false; } };
-  function parseStudents(text){
-    const seen = new Set(), out = [];
-    String(text).split(/\r?\n/).forEach(line => {
-      const parts = line.split(/\t|،|,|\|/).map(x => x.trim());
-      const n = parts[0]; if(!n || seen.has(n + '|' + (parts[1] || ''))) return;
-      seen.add(n + '|' + (parts[1] || '')); out.push({n, c: parts[1] || ''});
-    });
-    return out.slice(0, 3000);
-  }
-  const studentsToText = () => students.map(x => x.c ? x.n + '، ' + x.c : x.n).join('\n');
-  const classesOf = () => [...new Set(students.map(x => x.c).filter(Boolean))];
+  // student list comes from the hours tracker (tracker.js, stored on this device)
+  const getStudents = () => (window.VW ? VW.certStudents() : []);
+  const classesOf = () => [...new Set(getStudents().map(x => x.c).filter(Boolean))];
 
   // ===== certificate of thanks (A4 landscape, ministry identity) =====
   const GEN = {
@@ -945,13 +933,13 @@
       tog.appendChild(b);
     });
     wrap.append(tog, box);
-    if(students.length){
+    if(getStudents().length){
       const row = document.createElement('div'); row.className = 'wz-row';
       const sel2 = document.createElement('select');
-      sel2.innerHTML = '<option value="">كل القائمة (' + students.length + ')</option>' + classesOf().map(c => '<option value="' + esc(c) + '">' + esc(c) + ' (' + students.filter(x => x.c === c).length + ')</option>').join('');
+      sel2.innerHTML = '<option value="">كل القائمة (' + getStudents().length + ')</option>' + classesOf().map(c => '<option value="' + esc(c) + '">' + esc(c) + ' (' + getStudents().filter(x => x.c === c).length + ')</option>').join('');
       const bb = document.createElement('button'); bb.type = 'button'; bb.className = 'wz-mini'; bb.textContent = '🖨 طباعة شهادات القائمة';
       bb.addEventListener('click', () => {
-        const names = students.filter(x => !sel2.value || x.c === sel2.value).map(x => x.n);
+        const names = getStudents().filter(x => !sel2.value || x.c === sel2.value).map(x => x.n);
         if(!names.length) return;
         if(names.length > 30 && !confirm('ستُطبع ' + names.length + ' شهادة. متابعة؟')) return;
         if(state.noteEl) state.noteEl.hidden = true; printCert(v => { if(state.noteEl) state.noteEl.hidden = !v; }, names);
@@ -980,15 +968,15 @@
     }, ok: () => !!state.gender
   };
   const nameStep = {
-    t: () => isG() ? 'ما اسم الطالبة؟' : 'ما اسم الطالب؟', h: () => students.length ? 'اختر من قائمتك أو اكتب اسماً آخر.' : 'الاسم كما سيُكتب في الشهادة.',
+    t: () => isG() ? 'ما اسم الطالبة؟' : 'ما اسم الطالب؟', h: () => getStudents().length ? 'اختر من قائمتك أو اكتب اسماً آخر.' : 'الاسم كما سيُكتب في الشهادة.',
     build: () => {
       const w = document.createElement('div');
-      w.innerHTML = '<div class="field"><label for="wzStudent">' + (students.length ? 'ابحث أو اكتب الاسم' : 'الاسم الثلاثي') + '</label><input type="text" id="wzStudent" autocomplete="off" placeholder="مثال: محمد بن عبدالله العتيبي"></div>';
+      w.innerHTML = '<div class="field"><label for="wzStudent">' + (getStudents().length ? 'ابحث أو اكتب الاسم' : 'الاسم الثلاثي') + '</label><input type="text" id="wzStudent" autocomplete="off" placeholder="مثال: محمد بن عبدالله العتيبي"></div>';
       const i = w.querySelector('input'); i.value = state.studentName;
-      const box = document.createElement('div'); box.className = 'wz-list'; box.hidden = !students.length;
+      const box = document.createElement('div'); box.className = 'wz-list'; box.hidden = !getStudents().length;
       function drawList(){
         const q = i.value.trim(); box.innerHTML = '';
-        const m = students.filter(x => !q || x.n.includes(q)).slice(0, 60);
+        const m = getStudents().filter(x => !q || x.n.includes(q)).slice(0, 60);
         m.forEach(x => { const b = document.createElement('button'); b.type = 'button'; b.className = x.n === state.studentName ? 'on' : '';
           b.innerHTML = '<span>' + esc(x.n) + '</span>' + (x.c ? '<small>' + esc(x.c) + '</small>' : '');
           b.addEventListener('click', () => { state.studentName = x.n; i.value = x.n; drawList(); refresh(); });
@@ -997,36 +985,10 @@
       }
       i.addEventListener('input', () => { state.studentName = i.value; drawList(); refresh(); });
       w.appendChild(box); drawList();
-      if(!students.length) setTimeout(() => i.focus(), 50);
+      if(!getStudents().length) setTimeout(() => i.focus(), 50);
       return w;
     }, ok: () => !!state.studentName.trim()
   };
-  const LIST = [{
-    t:'قائمة الطلاب', h:'اكتب كل اسم في سطر، ويمكن إضافة الفصل بعد فاصلة. تُحفظ على هذا الجهاز فقط.', done:true, label:'حفظ القائمة',
-    build: () => {
-      const w = document.createElement('div');
-      w.innerHTML = '<div class="field"><label for="wzList">الأسماء</label><textarea id="wzList" rows="9" placeholder="محمد بن عبدالله العتيبي، 2/أ&#10;خالد بن سعد الحربي، 2/أ"></textarea></div>' +
-        '<div class="wz-note" id="wzCount" style="color:var(--ink-soft)"></div>' +
-        '<div class="wz-row"><label class="wz-mini" style="text-align:center">رفع ملف CSV / نص<input type="file" id="wzFile" accept=".csv,.txt,text/csv,text/plain" hidden></label><button type="button" class="wz-mini" id="wzExp">تصدير</button><button type="button" class="wz-mini" id="wzClr">مسح الكل</button></div>' +
-        '<div class="wz-note" style="color:var(--ink-soft)">من Excel: انسخ عمود الأسماء (ومعه عمود الفصل إن وُجد) والصقه هنا مباشرة.</div>';
-      const ta = w.querySelector('#wzList'), cnt = w.querySelector('#wzCount'); ta.value = studentsToText();
-      const upd = () => { const n = parseStudents(ta.value).length; cnt.textContent = n ? 'عدد الطلاب: ' + n : 'لا توجد أسماء بعد'; };
-      ta.addEventListener('input', upd); upd();
-      w.querySelector('#wzFile').addEventListener('change', async e => {
-        const f = e.target.files[0]; if(!f) return;
-        const buf = await f.arrayBuffer(); let t = new TextDecoder('utf-8').decode(buf);
-        if(t.includes('�')){ try{ t = new TextDecoder('windows-1256').decode(buf); }catch(_){} }
-        ta.value = (ta.value.trim() ? ta.value.trim() + '\n' : '') + t.replace(/^﻿/, ''); upd();
-      });
-      w.querySelector('#wzExp').addEventListener('click', () => {
-        const blob = new Blob(['﻿' + parseStudents(ta.value).map(x => x.c ? x.n + ',' + x.c : x.n).join('\n')], {type:'text/csv;charset=utf-8'});
-        const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'students.csv'; document.body.appendChild(a); a.click(); a.remove();
-      });
-      w.querySelector('#wzClr').addEventListener('click', () => { if(confirm('مسح كل الأسماء من هذه القائمة؟')){ ta.value = ''; upd(); } });
-      return w;
-    },
-    action: () => { const ta = $('wzList'); students = parseStudents(ta ? ta.value : ''); if(!saveStudents()) alert('تعذّر الحفظ على هذا الجهاز.'); close(); }
-  }];
   const oppStep = {t:'ما الفرصة التطوعية؟', h:'اختر من الفرص الجاهزة لتُعبّأ بياناتها تلقائياً، أو اختر «أخرى» واكتب اسمها.', els:()=>[f('oppSelect'), $('customNameField')], ok:()=>!!getOppName()};
   const REPORT = [
     oppStep,
@@ -1076,7 +1038,7 @@
   menu.addEventListener('click', e => { if(e.target === menu) menu.hidden = true; });
   $('wzStart').addEventListener('click', () => open(REPORT));
   $('wzCert').addEventListener('click', () => { state.gender = ''; open(CERT); });
-  $('wzStudents').addEventListener('click', () => open(LIST));
+  $('wzStudents').addEventListener('click', () => { menu.hidden = true; if(window.VW) VW.open('progress'); });
   $('wzClose').addEventListener('click', close);
   prev.addEventListener('click', () => idx > 0 && show(idx - 1));
   next.addEventListener('click', () => { const st = STEPS[idx]; st.done ? st.action() : show(idx + 1); });
@@ -1617,5 +1579,6 @@ document.getElementById('resetBtn').addEventListener('click', ()=>{
   window.scrollTo({top:0, behavior:'smooth'});
 });
 </script>
+<script src="tracker.js"></script>
 </body>
 </html>
