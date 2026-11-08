@@ -333,13 +333,11 @@
      the report stays in normal flow, and cards/images become inline-blocks,
      which are never split between pages. */
   /* used only for a moment by fitForPrint() to measure at the printed width */
-  #report.fit-measure { width: 604px !important; }
+  #report.fit-measure { width: var(--measure-w, 718px) !important; }
   #report.fit-measure .info-grid { grid-template-columns: repeat(3, 1fr); }
   .print-help { margin: 12px 0; padding: 12px 14px; border: 1px solid #b7791f; border-radius: 12px; background: rgba(183,121,31,.12); font-size: .9rem; line-height: 1.7; }
   .print-help button { display: block; margin-top: 8px; }
-  /* iOS Safari ignores @page margins and prints with about 23mm top, 25mm sides and bottom,
-     so those are used everywhere: the printable area is the same ~604x941px in every browser */
-  @page { size: A4; margin: 23mm 25mm 25mm; }
+  @page { size: A4; margin: 10mm; }
   @media print {
     * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     html, body { background: #fff !important; }
@@ -1110,9 +1108,17 @@ document.getElementById('buildBtn').addEventListener('click', ()=>{
 });
 
 // ---------- fit the printout to at most two A4 pages ----------
-// A4 minus the @page margins above (measured from real iPhone Safari PDFs), in CSS px
-const PRINT_W = 604;
-const PRINT_H = 941 * 0.97;
+// iOS Safari ignores @page margins and prints with about 23mm top and 25mm sides/bottom
+// (measured from real iPhone PDFs): a ~604x941px area. Other browsers honour the 10mm margins.
+const IS_IOS = /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+const PRINT_W = IS_IOS ? 604 : 718;
+const PRINT_H = IS_IOS ? 941 * 0.97 : 1047 * 0.84;
+document.documentElement.style.setProperty('--measure-w', PRINT_W + 'px');
+if(IS_IOS){
+  const st = document.createElement('style');
+  st.textContent = '@page { size: A4; margin: 23mm 25mm 25mm; }';
+  document.head.appendChild(st);
+}
 const MIN_ZOOM = 0.45;
 
 function fitForPrint(){
