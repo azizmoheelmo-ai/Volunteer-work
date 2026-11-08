@@ -496,6 +496,41 @@
   .style-thumb i { display: block; height: 12px; background: linear-gradient(90deg, #3B83B7, #4CB176); }
   .style-thumb.classic i { background: var(--green-deep); }
   .style-thumb u { display: block; height: 4px; margin: 5px 4px 0; background: #d9e4ee; border-radius: 2px; }
+
+  /* ---------- interactive wizard (floating button + one tile per step) ---------- */
+  .wz-fab {
+    position: fixed; left: 14px; bottom: calc(14px + env(safe-area-inset-bottom, 0px)); z-index: 900;
+    display: inline-flex; align-items: center; gap: 6px; padding: 10px 16px;
+    border: 0; border-radius: 999px; cursor: pointer;
+    background: var(--green-deep); color: #fff; font: 700 .9rem var(--font-head);
+    box-shadow: 0 6px 18px -4px rgba(13,43,40,.45);
+  }
+  .wz-fab b { font-size: 1.2rem; line-height: 1; }
+  .wz-dim { position: fixed; inset: 0; z-index: 1000; background: rgba(8,24,21,.55); display: flex; align-items: flex-end; justify-content: center; }
+  .wz-dim[hidden], .wz[hidden] { display: none; }
+  .wz-sheet { width: 100%; max-width: 480px; background: var(--paper-raised); color: var(--ink); border-radius: 20px 20px 0 0; padding: 18px 16px calc(78px + env(safe-area-inset-bottom, 0px)); font-family: var(--font-body); }
+  .wz-sheet h4 { margin: 0 0 12px; font: 700 1rem var(--font-head); }
+  .wz-opt { display: flex; gap: 10px; align-items: center; width: 100%; text-align: right; border: 1px solid var(--line); background: var(--paper); color: var(--ink); border-radius: 12px; padding: 12px; margin-bottom: 8px; font: 700 .9rem var(--font-body); cursor: pointer; }
+  .wz-opt.p { background: var(--green-pale); border-color: var(--green); }
+  .wz-opt small { display: block; font-weight: 400; color: var(--ink-soft); font-size: .75rem; }
+  .wz { position: fixed; inset: 0; z-index: 1100; background: var(--paper); color: var(--ink); display: flex; flex-direction: column; font-family: var(--font-body); padding-top: env(safe-area-inset-top, 0px); }
+  .wz-top { padding: 14px 16px 0; max-width: 520px; width: 100%; margin: 0 auto; }
+  .wz-bar { height: 6px; background: var(--line); border-radius: 4px; overflow: hidden; }
+  .wz-bar i { display: block; height: 100%; background: var(--green); transition: width .25s; }
+  .wz-step { display: flex; justify-content: space-between; font-size: .8rem; color: var(--ink-soft); margin: 8px 0 12px; }
+  .wz-step button { border: 0; background: none; color: var(--ink-soft); font-size: 1.1rem; cursor: pointer; }
+  .wz-body { flex: 1; overflow-y: auto; padding: 0 16px 16px; max-width: 520px; width: 100%; margin: 0 auto; }
+  .wz-tile { background: var(--paper-raised); border: 1px solid var(--line); border-radius: 16px; padding: 18px 16px; box-shadow: var(--shadow); }
+  .wz-tile h3 { margin: 0 0 4px; font: 700 1.1rem var(--font-head); color: var(--green-deep); }
+  .wz-tile > p { margin: 0 0 14px; font-size: .85rem; color: var(--ink-soft); }
+  .wz-nav { display: flex; gap: 8px; padding: 10px 16px calc(14px + env(safe-area-inset-bottom, 0px)); max-width: 520px; width: 100%; margin: 0 auto; }
+  .wz-nav button { padding: 13px; border-radius: 12px; font: 700 .95rem var(--font-body); cursor: pointer; border: 1px solid var(--line); background: var(--paper-raised); color: var(--ink); }
+  .wz-nav #wzPrev { width: 90px; }
+  .wz-nav #wzNext { flex: 1; background: var(--green-deep); border-color: var(--green-deep); color: #fff; }
+  .wz-nav button:disabled { opacity: .4; }
+  .wz-ok { text-align: center; padding: 24px 0 8px; }
+  .wz-ok .c { width: 70px; height: 70px; border-radius: 50%; background: var(--green); color: #fff; font-size: 2.2rem; line-height: 70px; margin: 0 auto 12px; }
+  @media print { .wz-fab, .wz-dim, .wz { display: none !important; } }
 </style>
 </head>
 <body>
@@ -725,6 +760,73 @@
     </div>
   </div>
 </div>
+<button class="wz-fab no-print" id="wzFab" type="button" aria-label="جولة تفاعلية"><b>＋</b> جولة تفاعلية</button>
+<div class="wz-dim no-print" id="wzMenu" hidden>
+  <div class="wz-sheet" role="dialog" aria-label="جولة تفاعلية">
+    <h4>جولة تفاعلية</h4>
+    <button class="wz-opt p" id="wzStart" type="button"><span>📝</span><span>إنشاء تقرير خطوة بخطوة<small>بلاطة لكل سؤال، بدون صفحة طويلة</small></span></button>
+    <button class="wz-opt" id="wzMenuClose" type="button"><span>✕</span><span>إغلاق</span></button>
+  </div>
+</div>
+<div class="wz no-print" id="wz" hidden>
+  <div class="wz-top">
+    <div class="wz-bar"><i id="wzBar"></i></div>
+    <div class="wz-step"><span id="wzCnt"></span><button type="button" id="wzClose" aria-label="إغلاق">✕</button></div>
+  </div>
+  <div class="wz-body"><div class="wz-tile"><h3 id="wzTitle"></h3><p id="wzHint"></p><div id="wzSlot"></div></div></div>
+  <div class="wz-nav"><button type="button" id="wzPrev">› السابق</button><button type="button" id="wzNext">التالي ‹</button></div>
+</div>
+<script>
+// ---------- interactive wizard: one tile per question, reusing the real form fields ----------
+(function(){
+  const $ = id => document.getElementById(id);
+  const fab = $('wzFab'), menu = $('wzMenu'), wz = $('wz'), slot = $('wzSlot'), next = $('wzNext'), prev = $('wzPrev');
+  const f = id => $(id).closest('.field');
+  // each step moves the real form elements into the tile, then puts them back when it ends
+  const STEPS = [
+    {t:'ما اسم الفرصة؟', h:'اختر الفرصة وسنعبّي الوصف والمهارات والمهام تلقائياً.', els:()=>[f('oppSelect'), $('customNameField')], ok:()=>!!getOppName()},
+    {t:'ما اسم مدرستك؟', h:'يُحفظ ولن تكتبه مرة ثانية.', els:()=>[f('schoolName')]},
+    {t:'راجع بيانات الفرصة', h:'عُبّئت تلقائياً، عدّل أي حقل تحتاجه.', els:()=>[$('oppFields')]},
+    {t:'متى نُفّذت الفرصة؟', h:'اختر تاريخ التقرير وتاريخ البداية والنهاية.', els:()=>[f('reportDate'), f('startDate').parentElement]},
+    {t:'كم عدد المتطوعين؟', h:'اكتب العدد بالأرقام.', els:()=>[f('volCount')]},
+    {t:'الشواهد', h:'اكتب وصفاً لما تم تنفيذه وأثره، وأضف الصور.', els:()=>[f('evidenceText'), f('evidenceImgs')]},
+    {t:'التواقيع', h:'تُحفظ تلقائياً، عدّلها إن لزم.', els:()=>[f('signPrincipal'), f('signCoordinator'), f('signVice')]},
+    {t:'اكتملت البيانات', h:'', els:()=>[], done:true}
+  ];
+  let idx = 0, moved = [];
+  function restore(){
+    moved.reverse().forEach(m => m.next && m.next.parentNode === m.parent ? m.parent.insertBefore(m.el, m.next) : m.parent.appendChild(m.el));
+    moved = [];
+  }
+  function show(i){
+    restore(); idx = i; const st = STEPS[i];
+    $('wzTitle').textContent = st.t; $('wzHint').textContent = st.h;
+    slot.innerHTML = '';
+    if(st.done){
+      slot.innerHTML = '<div class="wz-ok"><div class="c">✓</div><p style="margin:0;color:var(--ink-soft);font-size:.85rem">اضغط «إنشاء التقرير» لعرضه وطباعته.</p></div>';
+    }
+    st.els().forEach(el => { moved.push({el, parent: el.parentNode, next: el.nextSibling}); slot.appendChild(el); });
+    $('wzCnt').textContent = st.done ? 'جاهز' : 'الخطوة ' + (i + 1) + ' من ' + (STEPS.length - 1);
+    $('wzBar').style.width = (i / (STEPS.length - 1) * 100) + '%';
+    prev.disabled = i === 0;
+    next.textContent = st.done ? 'إنشاء التقرير ✓' : 'التالي ‹';
+    refresh(); wz.querySelector('.wz-body').scrollTop = 0;
+  }
+  function refresh(){ const st = STEPS[idx]; next.disabled = st.ok ? !st.ok() : false; }
+  function open(){ menu.hidden = true; fab.hidden = true; wz.hidden = false; document.body.style.overflow = 'hidden'; show(0); }
+  function close(){ restore(); wz.hidden = true; fab.hidden = false; document.body.style.overflow = ''; }
+  fab.addEventListener('click', () => { menu.hidden = false; });
+  $('wzMenuClose').addEventListener('click', () => { menu.hidden = true; });
+  menu.addEventListener('click', e => { if(e.target === menu) menu.hidden = true; });
+  $('wzStart').addEventListener('click', open);
+  $('wzClose').addEventListener('click', close);
+  prev.addEventListener('click', () => idx > 0 && show(idx - 1));
+  next.addEventListener('click', () => {
+    if(STEPS[idx].done){ close(); $('buildBtn').click(); } else show(idx + 1);
+  });
+  wz.addEventListener('input', refresh); wz.addEventListener('change', () => setTimeout(refresh, 0));
+})();
+</script>
 <script>
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js').catch(() => {}); });
