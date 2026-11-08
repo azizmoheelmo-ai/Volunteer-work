@@ -364,6 +364,7 @@
     .period-row .info-card:nth-child(2n) { margin-left: 0; }
     /* page fitting: fitForPrint() sets the zoom, image height and column count */
     #mainPage { zoom: var(--fit-main, 1); }
+    #evidencePage { zoom: var(--fit-ev, 1); }
     .evidence-cell img { height: var(--ev-img-h, 150px); }
     .evidence-cell { width: calc((100% - 12px) / 2); margin: 0 0 12px 12px; }
     .evidence-grid.cols-1 .evidence-cell { width: 100%; margin-left: 0; }
@@ -1109,8 +1110,8 @@ document.getElementById('buildBtn').addEventListener('click', ()=>{
 // ---------- fit the printout to at most two A4 pages ----------
 // A4 minus the 10mm @page margins, in CSS px, with headroom for browser headers/footers
 const PRINT_W = 718;
-const PRINT_H = 1047 * 0.94;
-const MIN_ZOOM = 0.75;
+const PRINT_H = 1047 * 0.9;
+const MIN_ZOOM = 0.45;
 
 function fitForPrint(){
   if(reportSection.style.display === "none") return;
@@ -1132,11 +1133,12 @@ function fitForPrint(){
     }
   }
   mainPage.querySelectorAll('.box-section').forEach(box=>{
-    box.classList.toggle('can-split', box.offsetHeight * zoom > PRINT_H * 0.35);
+    // only allow splitting when even the smallest zoom cannot fit the page
+    box.classList.toggle('can-split', zoom <= MIN_ZOOM && box.offsetHeight * zoom > PRINT_H * 0.35);
   });
 
   // evidence page: pick the column count and image height that fill one page
-  let cols = 2, imgH = 150;
+  let cols = 2, imgH = 150, evZoom = 1;
   if(hasEvidence){
     const n = grid.children.length;
     const cap = grid.querySelector('.evidence-cap');
@@ -1152,11 +1154,16 @@ function fitForPrint(){
       if(h > best + 1){ best = h; cols = c; }
     }
     imgH = Math.max(60, Math.floor(best));
+    // if even the smallest images overflow (many evidences / long text), shrink the whole page
+    const rows = Math.ceil(n / cols);
+    const total = (PRINT_H - availH) + 4 + rows * (imgH + capH + gap);
+    if(total > PRINT_H) evZoom = Math.max(MIN_ZOOM, PRINT_H / total);
   }
 
   reportSection.classList.remove('fit-measure');
 
   document.documentElement.style.setProperty('--fit-main', zoom.toFixed(3));
+  document.documentElement.style.setProperty('--fit-ev', evZoom.toFixed(3));
   document.documentElement.style.setProperty('--ev-img-h', imgH + 'px');
   grid.classList.remove('cols-1', 'cols-2', 'cols-3', 'cols-4');
   grid.classList.add('cols-' + cols);
