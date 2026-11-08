@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>تقرير فرصة تطوعية مدرسية</title>
-<meta name="theme-color" content="#0f5c47">
+<meta name="theme-color" content="#15445a">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -16,50 +16,70 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&family=IBM+Plex+Sans+Arabic:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
+  /* Ministry of Education visual identity: navy #15445a, blue #3d7eb9, green #07a869, gold #c1b489,
+     gradient #3B83B7 -> #4CB176, font Helvetica Neue W23 for SKY. (The variable names keep "green"
+     from the old theme; the values are the ministry palette.) */
   :root {
-    --ink: #0d2b28;
-    --ink-soft: #3c5652;
-    --paper: #f6f8f5;
+    --ink: #15445a;
+    --ink-soft: #526c7b;
+    --paper: #f3f7fa;
     --paper-raised: #ffffff;
-    --line: #d7e3dc;
-    --green-deep: #0f5c47;
-    --green: #1c8a5e;
-    --green-bright: #3fae7e;
-    --green-pale: #e6f3ec;
-    --amber: #b5792a;
-    --amber-pale: #fbf1e2;
-    --blue: #2f6fb0;
-    --blue-pale: #eaf1fa;
-    --purple: #6b4fa0;
-    --purple-pale: #f1ecfa;
-    --shadow: 0 1px 2px rgba(13,43,40,.06), 0 8px 24px -12px rgba(13,43,40,.18);
+    --line: #d3dee6;
+    --green-deep: #15445a;
+    --green: #3d7eb9;
+    --green-bright: #07a869;
+    --green-pale: #e6eff6;
+    --amber: #7d6d3f;
+    --amber-pale: #f5f1e6;
+    --blue: #3d7eb9;
+    --blue-pale: #e6eff6;
+    --purple: #351375;
+    --purple-pale: #efeaf7;
+    --shadow: 0 1px 2px rgba(21,68,90,.06), 0 8px 24px -12px rgba(21,68,90,.22);
     --radius: 14px;
-    --font-head: 'Cairo', 'IBM Plex Sans Arabic', Tahoma, sans-serif;
-    --font-body: 'IBM Plex Sans Arabic', 'Cairo', Tahoma, sans-serif;
+    --font-head: 'Helvetica Neue W23 for SKY', 'IBM Plex Sans Arabic', Tahoma, sans-serif;
+    --font-body: 'Helvetica Neue W23 for SKY', 'IBM Plex Sans Arabic', Tahoma, sans-serif;
     box-sizing: border-box;
     padding-top: env(safe-area-inset-top, 0px);
     padding-bottom: env(safe-area-inset-bottom, 0px);
   }
+  /* the printed report keeps its own look exactly as before, whatever the app theme is */
+  #report {
+    --ink: #0d2b28; --ink-soft: #3c5652; --paper: #f6f8f5; --paper-raised: #ffffff; --line: #d7e3dc;
+    --green-deep: #0f5c47; --green: #1c8a5e; --green-bright: #3fae7e; --green-pale: #e6f3ec;
+    --amber: #b5792a; --amber-pale: #fbf1e2; --blue: #2f6fb0; --blue-pale: #eaf1fa;
+    --purple: #6b4fa0; --purple-pale: #f1ecfa;
+    --shadow: 0 1px 2px rgba(13,43,40,.06), 0 8px 24px -12px rgba(13,43,40,.18);
+    --font-head: 'Cairo', 'IBM Plex Sans Arabic', Tahoma, sans-serif;
+    --font-body: 'IBM Plex Sans Arabic', 'Cairo', Tahoma, sans-serif;
+    font-family: var(--font-body); color: var(--ink);
+  }
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
-      --ink: #eef5f0;
-      --ink-soft: #b7c9c1;
-      --paper: #0e1a17;
-      --paper-raised: #142621;
-      --line: #22423a;
-      --green-pale: #12332a;
-      --amber-pale: #2a2013;
+      --ink: #eaf2f7;
+      --ink-soft: #b3c6d2;
+      --paper: #0d2230;
+      --paper-raised: #12303f;
+      --line: #24475a;
+      --green-deep: #3d7eb9;
+      --green: #69cee3;
+      --green-pale: #16384d;
+      --amber: #c1b489;
+      --amber-pale: #2b2616;
       --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px -12px rgba(0,0,0,.5);
     }
   }
   :root[data-theme="dark"] {
-    --ink: #eef5f0;
-    --ink-soft: #b7c9c1;
-    --paper: #0e1a17;
-    --paper-raised: #142621;
-    --line: #22423a;
-    --green-pale: #12332a;
-    --amber-pale: #2a2013;
+    --ink: #eaf2f7;
+    --ink-soft: #b3c6d2;
+    --paper: #0d2230;
+    --paper-raised: #12303f;
+    --line: #24475a;
+    --green-deep: #3d7eb9;
+    --green: #69cee3;
+    --green-pale: #16384d;
+    --amber: #c1b489;
+    --amber-pale: #2b2616;
     --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px -12px rgba(0,0,0,.5);
   }
   html, body { height: 100%; }
@@ -620,6 +640,27 @@
     header.top, .hdr-logo { transition: none; }
   }
   @media print { .reveal { opacity: 1 !important; } header.top { display: none !important; } }
+
+  /* ministry identity touches: gradient line under the header and on the progress bar, plain logo, school card */
+  .hdr-logo { border: 0; padding: 2px 6px; }
+  header.top::after { content: ""; position: absolute; inset-inline: 18px; bottom: 0; height: 3px; border-radius: 2px; background: linear-gradient(90deg, #3B83B7, #4CB176); }
+  .wz-bar i { background: linear-gradient(90deg, #3B83B7, #4CB176); }
+  .wz-ok .c { background: var(--green-bright); }
+  .hcard.amber .hi { background: #f5f1e6; color: #7d6d3f; }
+  .school-card { display: flex; align-items: center; gap: 12px; width: 100%; text-align: right; padding: 11px 14px; margin-bottom: 14px; border: 1.5px solid var(--green); border-radius: 16px; background: var(--green-pale); color: var(--ink); font-family: var(--font-body); cursor: pointer; transition: transform .15s ease; }
+  .school-card:active { transform: scale(.98); }
+  .school-card .sc-i { width: 38px; height: 38px; border-radius: 11px; flex: none; display: grid; place-items: center; background: var(--green-deep); color: #fff; }
+  .school-card .sc-i svg { width: 21px; height: 21px; }
+  .school-card b { display: block; font: 700 .95rem var(--font-head); }
+  .school-card .d { font-size: .76rem; color: var(--ink-soft); }
+  .school-card .sc-edit { margin-inline-start: auto; display: inline-flex; align-items: center; gap: 4px; font: 700 .78rem var(--font-body); color: var(--green-deep); flex: none; }
+  .school-card .sc-edit svg { width: 15px; height: 15px; }
+  .school-card.empty { border-style: dashed; }
+  .wz-school { display: flex; align-items: center; gap: 6px; width: 100%; margin: 0 0 10px; padding: 6px 12px; border-radius: 999px; border: 1px solid var(--line); background: var(--paper-raised); color: var(--ink-soft); font: 700 .76rem var(--font-body); cursor: pointer; text-align: right; }
+  .wz-school[hidden] { display: none; }
+  .wz-school svg { width: 14px; height: 14px; flex: none; }
+  .wz-school b { margin-inline-start: auto; color: var(--green-deep); }
+  .wz-prev-hide { display: none !important; }
 </style>
 </head>
 <body>
@@ -635,6 +676,11 @@
 
   <section id="home" class="no-print">
     <div class="home-notice" id="homeNotice" hidden></div>
+    <button class="school-card" id="schoolCard" type="button">
+      <span class="sc-i"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/></svg></span>
+      <span><b id="schoolCardName">أضف بيانات مدرستك</b><span class="d" id="schoolCardSub">اسم المدرسة والتواقيع — مرة واحدة فقط</span></span>
+      <span class="sc-edit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg><span id="schoolCardAct">إضافة</span></span>
+    </button>
     <div class="home-lead">ماذا تريد أن تنشئ؟</div>
     <button class="hcard" id="homeReport" type="button">
       <span class="hi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></svg></span>
@@ -872,6 +918,7 @@
   <div class="wz-top">
     <div class="wz-bar"><i id="wzBar"></i></div>
     <div class="wz-step"><span id="wzCnt"></span><button type="button" id="wzClose" aria-label="إغلاق">✕</button></div>
+    <button type="button" class="wz-school" id="wzSchool" hidden></button>
   </div>
   <div class="wz-body"><div class="wz-tile"><h3 id="wzTitle"></h3><p id="wzHint"></p><div id="wzSlot"></div></div></div>
   <div class="wz-why" id="wzWhy" aria-live="polite"></div>
@@ -1031,7 +1078,8 @@
     monitor: '<rect width="20" height="14" x="2" y="3" rx="2"/><line x1="8" x2="16" y1="21" y2="21"/><line x1="12" x2="12" y1="17" y2="21"/>',
     heart: '<path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>',
     plus: '<path d="M5 12h14"/><path d="M12 5v14"/>',
-    user: '<path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>'
+    user: '<path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>',
+    building: '<path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/>'
   };
   const svg = k => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + IC[k] + '</svg>';
   function oppIcon(n){
@@ -1164,12 +1212,10 @@
   const oppStep = {t:'ما الفرصة التطوعية؟', h:'اضغط على بلاطة الفرصة لتُعبّأ بياناتها تلقائياً، أو اختر «أخرى» واكتب اسمها.', build: buildOppTiles, ok:()=>!!getOppName(), why:'اختر فرصة للمتابعة'};
   const REPORT = [
     oppStep,
-    {t:'ما اسم مدرستك؟', h:'يُحفظ ولن تكتبه مرة ثانية.', els:()=>[f('schoolName')]},
-    {t:'راجع بيانات الفرصة', h:'عُبّئت تلقائياً، عدّل أي حقل تحتاجه.', build: buildLevelTiles, els:()=>[$('oppFields')]},
+    {t:'راجع بيانات الفرصة', h:'عُبّئت تلقائياً، عدّل أي حقل تحتاجه.', review:true, build: buildLevelTiles, els:()=>[$('oppFields')]},
     {t:'متى نُفّذت الفرصة؟', h:'اختر تاريخ التقرير وتاريخ البداية والنهاية.', els:()=>[f('reportDate'), f('startDate').parentElement]},
     {t:'كم عدد المتطوعين؟', h:'اختر رقماً سريعاً أو اكتبه بالأرقام.', build: buildVolTiles, els:()=>[f('volCount')]},
     {t:'الشواهد', h:'اكتب وصفاً لما تم تنفيذه وأثره، وأضف الصور.', els:()=>[f('evidenceText'), f('evidenceImgs')]},
-    {t:'التواقيع', h:'تُحفظ تلقائياً، عدّلها إن لزم.', els:()=>[f('signPrincipal'), f('signCoordinator'), f('signVice')]},
     {t:'اكتملت البيانات', h:'', els:()=>[], done:true, label:'إنشاء التقرير ✓',
       build:()=>{ const d = document.createElement('div'); d.className = 'wz-ok'; d.innerHTML = '<div class="c">✓</div><p style="margin:0;color:var(--ink-soft);font-size:.85rem">اضغط «إنشاء التقرير» لعرضه وطباعته.</p>'; return d; },
       action:()=>{ close(); $('buildBtn').click(); }}
@@ -1178,12 +1224,16 @@
     pickStep, nameStep, oppStep,
     {t:'كم ساعة تطوّع؟', h:'عُبّئت تلقائياً من الفرصة المختارة. وإن اخترت «أخرى» فاكتبها بنفسك.', els:()=>[f('oppHours')]},
     {t:'فترة الفرصة', h:'تاريخ البداية والنهاية (اختياري).', els:()=>[f('startDate').parentElement]},
-    {t:'اسم المدرسة', h:'يُحفظ ولن تكتبه مرة ثانية.', els:()=>[f('schoolName')]},
-    {t:'التواقيع', h:'تُحفظ تلقائياً، عدّلها إن لزم.', els:()=>[f('signPrincipal'), f('signCoordinator'), f('signVice')]},
     {t:'الشهادة جاهزة', h:'راجعها ثم اطبعها أو احفظها PDF.', els:()=>[], done:true, label:'🖨 طباعة / حفظ PDF', build:previewNode,
       action:()=>{ if(state.noteEl) state.noteEl.hidden = true; printCert(v => { if(state.noteEl) state.noteEl.hidden = !v; }); }}
   ];
-  let STEPS = REPORT, idx = 0, moved = [];
+  const SETTINGS = [
+    {t:'بيانات المدرسة', h:'تُحفظ على جوالك وتُستخدم في كل التقارير والشهادات، فلا تكتبها مرة ثانية.',
+      els:()=>[f('schoolName'), f('signPrincipal'), f('signCoordinator'), f('signVice')],
+      done:true, solo:true, label:'حفظ ✓', ok:()=>!!$('schoolName').value.trim(), why:'اكتب اسم المدرسة للحفظ',
+      action:()=>close()}
+  ];
+  let STEPS = REPORT, idx = 0, moved = [], afterSave = null;
   const val = (x, k) => typeof x[k] === 'function' ? x[k]() : x[k];
   function restore(){
     unmountPrint();
@@ -1197,9 +1247,14 @@
     slot.innerHTML = '';
     if(st.build) slot.appendChild(st.build());
     (st.els ? st.els() : []).forEach(el => { moved.push({el, parent: el.parentNode, next: el.nextSibling}); slot.appendChild(el); });
-    $('wzCnt').textContent = st.done ? 'جاهز' : 'الخطوة ' + (i + 1) + ' من ' + (STEPS.length - 1);
-    $('wzBar').style.width = (i / (STEPS.length - 1) * 100) + '%';
-    prev.disabled = i === 0;
+    $('wzCnt').textContent = st.solo ? 'مرة واحدة فقط' : st.done ? 'جاهز' : 'الخطوة ' + (i + 1) + ' من ' + (STEPS.length - 1);
+    $('wzBar').style.width = st.solo ? '100%' : (i / (STEPS.length - 1) * 100) + '%';
+    prev.disabled = i === 0; prev.style.visibility = st.solo ? 'hidden' : '';
+    const chip = $('wzSchool');
+    if(chip){
+      chip.hidden = !!st.done;
+      if(!st.done){ const n = $('schoolName').value.trim(); chip.innerHTML = svg('building') + '<span>' + (n ? n.replace(/</g,'&lt;') : 'أضف بيانات مدرستك') + '</span><b>' + (n ? 'تغيير' : 'إضافة') + '</b>'; }
+    }
     next.textContent = st.done ? st.label : 'التالي ‹';
     const tile = wz.querySelector('.wz-tile');
     tile.classList.remove('in-next', 'in-prev'); void tile.offsetWidth; if(dirn) tile.classList.add(dirn);
@@ -1211,12 +1266,23 @@
     $('wzWhy').textContent = bad ? (st.why || 'أكمل هذه الخطوة للمتابعة') : '';
     if(curSync) curSync();
   }
-  function open(steps, start){ STEPS = steps; idx = -1; wz.hidden = false; document.body.style.overflow = 'hidden'; show(start || 0); }
-  function close(){ restore(); wz.hidden = true; document.body.style.overflow = ''; }
+  function open(steps, start, after){ afterSave = after || null; STEPS = steps; idx = -1; wz.hidden = false; document.body.style.overflow = 'hidden'; show(start || 0); }
+  function close(){
+    restore(); wz.hidden = true; document.body.style.overflow = '';
+    if(window.vwSchoolCard) window.vwSchoolCard();
+    const a = afterSave; afterSave = null;
+    if(a && $('schoolName').value.trim()) a();
+  }
   const fresh = () => { if(window.vwFresh) window.vwFresh(); };
-  $('homeReport').addEventListener('click', () => { fresh(); open(REPORT); });
-  $('homeCert').addEventListener('click', () => { fresh(); state.gender = ''; state.studentName = ''; open(CERT); });
-  window.vwWizard = { report: i => open(REPORT, i) };
+  const begin = steps => {
+    if($('schoolName').value.trim()) open(steps);
+    else open(SETTINGS, 0, () => open(steps));
+  };
+  $('homeReport').addEventListener('click', () => { fresh(); begin(REPORT); });
+  $('homeCert').addEventListener('click', () => { fresh(); state.gender = ''; state.studentName = ''; begin(CERT); });
+  $('schoolCard').addEventListener('click', () => open(SETTINGS, 0));
+  if($('wzSchool')) $('wzSchool').addEventListener('click', () => { const back = STEPS, bi = idx; open(SETTINGS, 0, () => open(back, bi)); });
+  window.vwWizard = { report: () => open(REPORT, REPORT.findIndex(x => x.review)) };
   $('wzClose').addEventListener('click', close);
   prev.addEventListener('click', () => idx > 0 && show(idx - 1));
   next.addEventListener('click', () => { const st = STEPS[idx]; st.done ? st.action() : show(idx + 1); });
@@ -1763,7 +1829,7 @@ document.getElementById('editBtn').addEventListener('click', ()=>{
   reportSection.style.display = "none";
   afterBuildRow.style.display = "none";
   homeEl.hidden = false;
-  if(classicForm.hidden && window.vwWizard) window.vwWizard.report(2); // back to the data review tile
+  if(classicForm.hidden && window.vwWizard) window.vwWizard.report(); // back to the data review tile
   else window.scrollTo({top:0, behavior:'smooth'});
 });
 function resetFields(){
@@ -1822,6 +1888,19 @@ window.addEventListener('beforeprint', ()=>{ const e = document.getElementById('
   const onScroll = ()=> hdr.classList.toggle('scrolled', window.scrollY > 24);
   window.addEventListener('scroll', onScroll, {passive:true}); onScroll();
 })();
+
+// ---------- school-info card on Home ----------
+window.vwSchoolCard = function(){
+  const n = document.getElementById('schoolName').value.trim();
+  const c = SIGN_FIELDS.filter(([id]) => document.getElementById(id).value.trim()).length;
+  const sub = !n ? 'اسم المدرسة والتواقيع — مرة واحدة فقط'
+    : c === 0 ? 'بدون تواقيع' : c === 1 ? 'توقيع واحد محفوظ' : c === 2 ? 'توقيعان محفوظان' : c + ' تواقيع محفوظة';
+  document.getElementById('schoolCardName').textContent = n || 'أضف بيانات مدرستك';
+  document.getElementById('schoolCardSub').textContent = sub;
+  document.getElementById('schoolCardAct').textContent = n ? 'تعديل' : 'إضافة';
+  document.getElementById('schoolCard').classList.toggle('empty', !n);
+};
+window.vwSchoolCard();
 </script>
 </body>
 </html>
