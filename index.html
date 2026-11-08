@@ -530,6 +530,13 @@
   .wz-nav button:disabled { opacity: .4; }
   .wz-ok { text-align: center; padding: 24px 0 8px; }
   .wz-ok .c { width: 70px; height: 70px; border-radius: 50%; background: var(--green); color: #fff; font-size: 2.2rem; line-height: 70px; margin: 0 auto 12px; }
+  .wz-pick { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .wz-pick button { border: 2px solid var(--line); background: var(--paper); color: var(--ink); border-radius: 14px; padding: 22px 8px; font: 700 1.05rem var(--font-head); cursor: pointer; }
+  .wz-pick button.on { border-color: var(--green); background: var(--green-pale); }
+  .wz-pick small { display: block; margin-top: 4px; font: 400 .75rem var(--font-body); color: var(--ink-soft); }
+  .wz-prev { position: relative; width: 100%; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; background: #fff; }
+  .wz-prev .ct { position: absolute; top: 0; right: 0; transform-origin: top right; }
+  .wz-note { margin-top: 10px; font-size: .8rem; color: var(--amber); line-height: 1.7; }
   @media print { .wz-fab, .wz-dim, .wz { display: none !important; } }
 </style>
 </head>
@@ -765,6 +772,7 @@
   <div class="wz-sheet" role="dialog" aria-label="جولة تفاعلية">
     <h4>جولة تفاعلية</h4>
     <button class="wz-opt p" id="wzStart" type="button"><span>📝</span><span>إنشاء تقرير خطوة بخطوة<small>بلاطة لكل سؤال، بدون صفحة طويلة</small></span></button>
+    <button class="wz-opt p" id="wzCert" type="button"><span>🏅</span><span>شهادة شكر وتقدير<small>للطالب أو الطالبة المشارك في عمل تطوعي</small></span></button>
     <button class="wz-opt" id="wzMenuClose" type="button"><span>✕</span><span>إغلاق</span></button>
   </div>
 </div>
@@ -782,48 +790,162 @@
   const $ = id => document.getElementById(id);
   const fab = $('wzFab'), menu = $('wzMenu'), wz = $('wz'), slot = $('wzSlot'), next = $('wzNext'), prev = $('wzPrev');
   const f = id => $(id).closest('.field');
-  // each step moves the real form elements into the tile, then puts them back when it ends
-  const STEPS = [
-    {t:'ما اسم الفرصة؟', h:'اختر الفرصة وسنعبّي الوصف والمهارات والمهام تلقائياً.', els:()=>[f('oppSelect'), $('customNameField')], ok:()=>!!getOppName()},
+  const esc = t => String(t == null ? '' : t).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+  // ===== certificate of thanks (A4 landscape, ministry identity) =====
+  const GEN = {
+    b: {dark:'#15445a', acc:'#3d7eb9', mut:'#526c7b', g1:'#3B83B7', g2:'#4CB176', who:'للطالب', his:'مشاركته', him:'له', pn:'مدير المدرسة', vp:'وكيل الشؤون الطلابية', co:'منسق التطوع'},
+    g: {dark:'#351375', acc:'#7258a4', mut:'#5a4d78', g1:'#7258a4', g2:'#0da9a6', who:'للطالبة', his:'مشاركتها', him:'لها', pn:'مديرة المدرسة', vp:'وكيلة الشؤون الطلابية', co:'منسقة التطوع'}
+  };
+  const CERT_CSS = `
+    .ct{width:1123px;height:794px;position:relative;overflow:hidden;background:#fff;color:var(--dark);direction:rtl;font-family:'Helvetica Neue W23 for SKY',Tahoma,sans-serif;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    .ct *{box-sizing:border-box;margin:0}
+    .ct .ab{position:absolute}.ct .tt{position:absolute;left:0;right:0;text-align:center}
+    .ct .fr{inset:26px;border-radius:44px;border:5px solid transparent;background:linear-gradient(#fff,#fff) padding-box,linear-gradient(90deg,var(--g1),var(--g2)) border-box}
+    .ct .fr2{inset:44px;border-radius:30px;border:1.5px solid var(--acc);opacity:.45}
+    .ct .body{font-size:25px;line-height:2.05;padding:0 110px}.ct .body b{color:var(--acc)}
+    .ct .nm{font-weight:700;color:var(--dark);line-height:1.5}
+    .ct .sig{position:absolute;left:90px;right:90px;bottom:58px;display:flex;justify-content:space-around;text-align:center}
+    .ct .sig div{width:250px;font-size:16px;color:var(--mut)}.ct .sig b{display:block;color:var(--dark);font-size:17px;margin-bottom:30px}
+    .ct .sig i{display:block;border-top:2px solid var(--acc);padding-top:7px;font-style:normal;font-weight:700;color:var(--dark);min-height:34px}`;
+  const ctStyle = document.createElement('style'); ctStyle.textContent = CERT_CSS; document.head.appendChild(ctStyle);
+  function certData(){
+    const num = (oppHours.value.match(/\d+/) || [''])[0];
+    const d1 = document.getElementById('startDate').value, d2 = document.getElementById('endDate').value;
+    return {
+      g: GEN[state.gender] || GEN.b,
+      name: state.studentName.trim(),
+      school: document.getElementById('schoolName').value.trim() || 'المدرسة',
+      opp: getOppName(),
+      hours: oppHours.value.trim(), num,
+      from: d1 ? formatDateForDisplay(d1) : '', to: d2 ? formatDateForDisplay(d2) : '',
+      n1: document.getElementById('signPrincipal').value.trim(), n2: document.getElementById('signCoordinator').value.trim(), n3: document.getElementById('signVice').value.trim()
+    };
+  }
+  function certHTML(d, logoUrl){
+    const g = d.g, vars = `--dark:${g.dark};--acc:${g.acc};--mut:${g.mut};--g1:${g.g1};--g2:${g.g2}`;
+    const line2 = [d.hours ? `بواقع <b>${esc(d.hours)}</b> تطوعية` : '', d.from && d.to ? `خلال الفترة من <b>${esc(d.from)}</b> إلى <b>${esc(d.to)}</b>` : ''].filter(Boolean).join('، ');
+    const nameSize = d.name.length > 26 ? 34 : 40;
+    return `<div class="ct" style="${vars}"><div class="ab fr"></div><div class="ab fr2"></div>
+      <svg class="ab" style="top:54px;left:50%;margin-left:-60px" width="120" height="150" viewBox="0 0 120 150"><defs><linearGradient id="ctg" x1="0" x2="1"><stop offset="0" stop-color="${g.g1}"/><stop offset="1" stop-color="${g.g2}"/></linearGradient></defs>
+        <path d="M32 70 L18 146 L48 130 L60 146 L72 130 L102 146 L88 70Z" fill="${g.dark}"/><circle cx="60" cy="52" r="46" fill="url(#ctg)"/><circle cx="60" cy="52" r="37" fill="none" stroke="#fff" stroke-width="2.5" stroke-dasharray="2 6" stroke-linecap="round"/>
+        <text x="60" y="${d.num ? 48 : 58}" text-anchor="middle" fill="#fff" font-size="${d.num ? 30 : 22}" font-weight="700" font-family="'Helvetica Neue W23 for SKY',Tahoma">${d.num || 'تطوع'}</text>${d.num ? '<text x="60" y="70" text-anchor="middle" fill="#fff" font-size="15" font-family="\'Helvetica Neue W23 for SKY\',Tahoma">ساعات</text>' : ''}</svg>
+      <img class="ab" src="${logoUrl}" style="height:52px;top:66px;right:90px">
+      <div class="ab" style="top:72px;left:90px;color:var(--mut);font-size:16px;line-height:1.7">${esc(d.school)}</div>
+      <div class="tt" style="top:222px;color:var(--dark);font-size:58px;font-weight:700">شهادة شكر وتقدير</div>
+      <div class="tt body" style="top:305px">تتقدم إدارة <b>${esc(d.school)}</b> بالشكر والتقدير ${g.who}<div class="nm" style="font-size:${nameSize}px">${esc(d.name) || '………………'}</div>
+        على ${g.his} المتميزة في الفرصة التطوعية «<b>${esc(d.opp)}</b>»<br>${line2 ? line2 + '<br>' : ''}راجين ${g.him} دوام التوفيق</div>
+      <div class="sig"><div><b>${g.vp}</b><i>${esc(d.n3)}</i></div><div><b>${g.co}</b><i>${esc(d.n2)}</i></div><div><b>${g.pn}</b><i>${esc(d.n1)}</i></div></div></div>`;
+  }
+  function printCert(note){
+    const d = certData(), base = new URL('.', location.href).href;
+    const font = w => `@font-face{font-family:'Helvetica Neue W23 for SKY';src:url('${base}fonts/HelveticaNeueW23forSKY-${w}.ttf');font-weight:${w === 'Bold' ? 700 : 400}}`;
+    const doc = `<!DOCTYPE html><html lang="ar" dir="rtl"><meta charset="utf-8"><style>${font('Regular')}${font('Bold')}@page{size:A4 landscape;margin:0}html,body{margin:0;background:#fff;width:1123px;height:793px;overflow:hidden}${CERT_CSS}</style><body>${certHTML(d, base + 'icons/moe-logo.png')}</body></html>`;
+    const fr = document.createElement('iframe');
+    fr.style.cssText = 'position:fixed;left:-9999px;top:0;width:1123px;height:794px;border:0';
+    let fired = false;
+    fr.onload = () => {
+      const w = fr.contentWindow;
+      w.addEventListener('beforeprint', () => { fired = true; });
+      const go = () => { try{ w.focus(); w.print(); }catch(e){ note(true); } setTimeout(() => { if(!fired) note(true); }, 1500); };
+      (w.document.fonts ? Promise.race([w.document.fonts.ready, new Promise(r => setTimeout(r, 2500))]) : Promise.resolve()).then(() => setTimeout(go, 200));
+    };
+    fr.srcdoc = doc; document.body.appendChild(fr);
+    setTimeout(() => fr.remove(), 120000);
+  }
+  function previewNode(){
+    const box = document.createElement('div'); box.className = 'wz-prev';
+    box.innerHTML = certHTML(certData(), 'icons/moe-logo.png');
+    const ct = box.firstChild;
+    requestAnimationFrame(() => {
+      const sc = (box.clientWidth || 300) / 1123;
+      ct.style.transform = 'scale(' + sc + ')'; box.style.height = (794 * sc) + 'px';
+    });
+    const wrap = document.createElement('div'); wrap.appendChild(box);
+    const noteEl = document.createElement('div'); noteEl.className = 'wz-note'; noteEl.hidden = true;
+    noteEl.textContent = 'الطباعة غير مدعومة داخل هذا المتصفح. انسخ الرابط وافتحه في Safari أو Chrome ثم أعد المحاولة.';
+    wrap.appendChild(noteEl); state.noteEl = noteEl;
+    return wrap;
+  }
+
+  // ===== wizard steps =====
+  const state = {gender:'', studentName:'', noteEl:null};
+  const isG = () => state.gender === 'g';
+  const pickStep = {
+    t: () => 'شهادة شكر وتقدير لمن؟', h: () => 'اختر لتتغير الصياغة والألوان تلقائياً.',
+    build: () => {
+      const w = document.createElement('div'); w.className = 'wz-pick';
+      [['b','👦','طالب','نسخة الأولاد'],['g','👧','طالبة','نسخة البنات']].forEach(([k,ic,l,sm]) => {
+        const b = document.createElement('button'); b.type = 'button'; b.className = state.gender === k ? 'on' : '';
+        b.innerHTML = ic + ' ' + l + '<small>' + sm + '</small>';
+        b.addEventListener('click', () => { state.gender = k; show(idx + 1); });
+        w.appendChild(b);
+      });
+      return w;
+    }, ok: () => !!state.gender
+  };
+  const nameStep = {
+    t: () => isG() ? 'ما اسم الطالبة؟' : 'ما اسم الطالب؟', h: () => 'الاسم كما سيُكتب في الشهادة.',
+    build: () => {
+      const w = document.createElement('div'); w.className = 'field';
+      w.innerHTML = '<label for="wzStudent">الاسم الثلاثي</label><input type="text" id="wzStudent" autocomplete="off" placeholder="مثال: محمد بن عبدالله العتيبي">';
+      const i = w.querySelector('input'); i.value = state.studentName;
+      i.addEventListener('input', () => { state.studentName = i.value; refresh(); });
+      setTimeout(() => i.focus(), 50);
+      return w;
+    }, ok: () => !!state.studentName.trim()
+  };
+  const oppStep = {t:'ما الفرصة التطوعية؟', h:'اختر من الفرص الجاهزة لتُعبّأ بياناتها تلقائياً، أو اختر «أخرى» واكتب اسمها.', els:()=>[f('oppSelect'), $('customNameField')], ok:()=>!!getOppName()};
+  const REPORT = [
+    oppStep,
     {t:'ما اسم مدرستك؟', h:'يُحفظ ولن تكتبه مرة ثانية.', els:()=>[f('schoolName')]},
     {t:'راجع بيانات الفرصة', h:'عُبّئت تلقائياً، عدّل أي حقل تحتاجه.', els:()=>[$('oppFields')]},
     {t:'متى نُفّذت الفرصة؟', h:'اختر تاريخ التقرير وتاريخ البداية والنهاية.', els:()=>[f('reportDate'), f('startDate').parentElement]},
     {t:'كم عدد المتطوعين؟', h:'اكتب العدد بالأرقام.', els:()=>[f('volCount')]},
     {t:'الشواهد', h:'اكتب وصفاً لما تم تنفيذه وأثره، وأضف الصور.', els:()=>[f('evidenceText'), f('evidenceImgs')]},
     {t:'التواقيع', h:'تُحفظ تلقائياً، عدّلها إن لزم.', els:()=>[f('signPrincipal'), f('signCoordinator'), f('signVice')]},
-    {t:'اكتملت البيانات', h:'', els:()=>[], done:true}
+    {t:'اكتملت البيانات', h:'', els:()=>[], done:true, label:'إنشاء التقرير ✓',
+      build:()=>{ const d = document.createElement('div'); d.className = 'wz-ok'; d.innerHTML = '<div class="c">✓</div><p style="margin:0;color:var(--ink-soft);font-size:.85rem">اضغط «إنشاء التقرير» لعرضه وطباعته.</p>'; return d; },
+      action:()=>{ close(); $('buildBtn').click(); }}
   ];
-  let idx = 0, moved = [];
+  const CERT = [
+    pickStep, nameStep, oppStep,
+    {t:'كم ساعة تطوّع؟', h:'عُبّئت تلقائياً من الفرصة المختارة. وإن اخترت «أخرى» فاكتبها بنفسك.', els:()=>[f('oppHours')]},
+    {t:'فترة الفرصة', h:'تاريخ البداية والنهاية (اختياري).', els:()=>[f('startDate').parentElement]},
+    {t:'اسم المدرسة', h:'يُحفظ ولن تكتبه مرة ثانية.', els:()=>[f('schoolName')]},
+    {t:'التواقيع', h:'تُحفظ تلقائياً، عدّلها إن لزم.', els:()=>[f('signPrincipal'), f('signCoordinator'), f('signVice')]},
+    {t:'الشهادة جاهزة', h:'راجعها ثم اطبعها أو احفظها PDF.', els:()=>[], done:true, label:'🖨 طباعة / حفظ PDF', build:previewNode,
+      action:()=>{ if(state.noteEl) state.noteEl.hidden = true; printCert(v => { if(state.noteEl) state.noteEl.hidden = !v; }); }}
+  ];
+  let STEPS = REPORT, idx = 0, moved = [];
+  const val = (x, k) => typeof x[k] === 'function' ? x[k]() : x[k];
   function restore(){
     moved.reverse().forEach(m => m.next && m.next.parentNode === m.parent ? m.parent.insertBefore(m.el, m.next) : m.parent.appendChild(m.el));
     moved = [];
   }
   function show(i){
     restore(); idx = i; const st = STEPS[i];
-    $('wzTitle').textContent = st.t; $('wzHint').textContent = st.h;
+    $('wzTitle').textContent = val(st, 't'); $('wzHint').textContent = val(st, 'h') || '';
     slot.innerHTML = '';
-    if(st.done){
-      slot.innerHTML = '<div class="wz-ok"><div class="c">✓</div><p style="margin:0;color:var(--ink-soft);font-size:.85rem">اضغط «إنشاء التقرير» لعرضه وطباعته.</p></div>';
-    }
-    st.els().forEach(el => { moved.push({el, parent: el.parentNode, next: el.nextSibling}); slot.appendChild(el); });
+    if(st.build) slot.appendChild(st.build());
+    (st.els ? st.els() : []).forEach(el => { moved.push({el, parent: el.parentNode, next: el.nextSibling}); slot.appendChild(el); });
     $('wzCnt').textContent = st.done ? 'جاهز' : 'الخطوة ' + (i + 1) + ' من ' + (STEPS.length - 1);
     $('wzBar').style.width = (i / (STEPS.length - 1) * 100) + '%';
     prev.disabled = i === 0;
-    next.textContent = st.done ? 'إنشاء التقرير ✓' : 'التالي ‹';
+    next.textContent = st.done ? st.label : 'التالي ‹';
     refresh(); wz.querySelector('.wz-body').scrollTop = 0;
   }
   function refresh(){ const st = STEPS[idx]; next.disabled = st.ok ? !st.ok() : false; }
-  function open(){ menu.hidden = true; fab.hidden = true; wz.hidden = false; document.body.style.overflow = 'hidden'; show(0); }
+  function open(steps){ STEPS = steps; menu.hidden = true; fab.hidden = true; wz.hidden = false; document.body.style.overflow = 'hidden'; show(0); }
   function close(){ restore(); wz.hidden = true; fab.hidden = false; document.body.style.overflow = ''; }
   fab.addEventListener('click', () => { menu.hidden = false; });
   $('wzMenuClose').addEventListener('click', () => { menu.hidden = true; });
   menu.addEventListener('click', e => { if(e.target === menu) menu.hidden = true; });
-  $('wzStart').addEventListener('click', open);
+  $('wzStart').addEventListener('click', () => open(REPORT));
+  $('wzCert').addEventListener('click', () => { state.gender = ''; open(CERT); });
   $('wzClose').addEventListener('click', close);
   prev.addEventListener('click', () => idx > 0 && show(idx - 1));
-  next.addEventListener('click', () => {
-    if(STEPS[idx].done){ close(); $('buildBtn').click(); } else show(idx + 1);
-  });
+  next.addEventListener('click', () => { const st = STEPS[idx]; st.done ? st.action() : show(idx + 1); });
   wz.addEventListener('input', refresh); wz.addEventListener('change', () => setTimeout(refresh, 0));
 })();
 </script>
