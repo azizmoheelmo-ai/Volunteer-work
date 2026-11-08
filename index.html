@@ -383,6 +383,102 @@
     .box-section h3, .evidence-header { page-break-after: avoid; break-after: avoid; }
     p, li { orphans: 3; widows: 3; }
   }
+
+  /* ---------- report style: Ministry of Education identity (chosen when printing/saving) ---------- */
+  @font-face { font-family: 'Helvetica Neue W23 for SKY'; src: url('fonts/HelveticaNeueW23forSKY-Regular.ttf') format('truetype'); font-weight: 400; font-display: swap; }
+  @font-face { font-family: 'Helvetica Neue W23 for SKY'; src: url('fonts/HelveticaNeueW23forSKY-Bold.ttf') format('truetype'); font-weight: 700; font-display: swap; }
+  .moe-logo, .moe-center, .moe-lab { display: none; }
+
+  #report.theme-moe {
+    --navy: #15445a; --mline: #d3dee6; --mbg: #f4f8fb; --mmut: #6b7f8c; --mblue: #3d7eb9;
+    --moe-font: 'Helvetica Neue W23 for SKY', var(--font-body);
+    --moe-grad: linear-gradient(90deg, #3B83B7, #4CB176);
+  }
+  #report.theme-moe * { font-family: var(--moe-font); }
+  #report.theme-moe .report-card { border: 0; border-radius: 0; box-shadow: none; background: #fff; color: var(--navy); }
+  #report.theme-moe .report-card::after { content: ""; display: block; height: 4px; border-radius: 2px; margin: 6px 28px 18px; background: var(--moe-grad); }
+
+  #report.theme-moe .rpt-topbar {
+    display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 10px;
+    padding: 26px 28px 14px; margin-bottom: 16px; border-bottom: 0;
+    background: var(--moe-grad) center bottom / calc(100% - 56px) 3px no-repeat;
+  }
+  #report.theme-moe .rpt-brand .mark, #report.theme-moe .rpt-brand-text { display: none; }
+  #report.theme-moe .moe-logo { display: block; width: 104px; height: auto; }
+  #report.theme-moe .moe-center { display: block; text-align: center; font-size: clamp(1.05rem, 4.2vw, 1.55rem); font-weight: 700; color: var(--navy); }
+  #report.theme-moe .rpt-school { justify-self: end; text-align: left; max-width: 190px; line-height: 1.5; font-size: .9rem; font-weight: 700; color: var(--navy); }
+
+  #report.theme-moe .rpt-titlebar {
+    display: flex; align-items: baseline; gap: 12px; text-align: right;
+    margin: 0 28px 14px; padding: 14px 22px; background: var(--navy); border-radius: 8px;
+  }
+  #report.theme-moe .rpt-kicker { display: none; }
+  #report.theme-moe .moe-lab { display: inline; font-size: .78rem; color: rgba(255,255,255,.85); flex: none; }
+  #report.theme-moe .rpt-titlebar h2 { font-size: 1.1rem; font-weight: 700; flex: 1; }
+
+  #report.theme-moe .report-body { padding: 0 28px 8px; }
+
+  #report.theme-moe .info-grid, #report.theme-moe .period-row {
+    gap: 1.5px; background: var(--mline); border: 1.5px solid var(--mline); overflow: hidden;
+  }
+  #report.theme-moe .info-grid { margin: 0; border-radius: 8px 8px 0 0; }
+  #report.theme-moe .period-row { margin: -1.5px 0 18px; border-radius: 0 0 8px 8px; }
+  #report.theme-moe .info-card { display: block; border: 0; border-radius: 0; background: #fff; padding: 10px 16px 12px; }
+  #report.theme-moe .info-icon { display: none; }
+  #report.theme-moe .info-card > div { display: flex; flex-direction: column-reverse; gap: 6px; }
+  #report.theme-moe .info-lbl { font-size: .72rem; color: var(--mmut); }
+  #report.theme-moe .info-val { font-size: .95rem; font-weight: 700; color: var(--navy); }
+
+  #report.theme-moe .box-section { border: 0; border-radius: 0; padding: 0; margin-bottom: 16px; background: transparent; }
+  #report.theme-moe .box-section h3 { gap: 8px; margin: 0 0 8px; padding: 0; border: 0; font-size: .95rem; font-weight: 700; color: var(--navy); }
+  #report.theme-moe .box-section h3::before { content: ""; width: 4px; height: 17px; border-radius: 2px; background: var(--mblue); flex: none; }
+  #report.theme-moe .box-icon { display: none; }
+  #report.theme-moe .box-section > p, #report.theme-moe .box-section > .tag-row, #report.theme-moe .box-section > ol.tasks {
+    margin: 0; padding: 11px 16px; background: var(--mbg); border: 1.5px solid var(--mline); border-radius: 8px; color: var(--navy);
+  }
+  #report.theme-moe #rEvidenceSection > p { background: #fff; border-color: var(--mblue); }
+  #report.theme-moe .tag { background: #fff; color: var(--mblue); border-color: var(--mblue); }
+  #report.theme-moe ol.tasks { list-style: none; counter-reset: tk; }
+  #report.theme-moe ol.tasks li { counter-increment: tk; display: flex; align-items: center; gap: 10px; line-height: 2; color: var(--navy); }
+  #report.theme-moe ol.tasks li::before {
+    content: counter(tk); flex: none; width: 20px; height: 20px; border-radius: 50%;
+    display: grid; place-items: center; background: var(--navy); color: #fff; font-size: .7rem; font-weight: 700; line-height: 1;
+  }
+
+  #report.theme-moe .sign-row { gap: 26px; margin-top: 30px; }
+  #report.theme-moe .sign-box { border: 0; border-top: 1.5px solid var(--navy); border-radius: 0; padding: 6px 0 0; text-align: right; }
+  #report.theme-moe .sign-role { color: var(--mmut); }
+  #report.theme-moe .sign-name { color: var(--navy); font-weight: 700; }
+
+  #report.theme-moe .evidence-header { display: flex; align-items: center; gap: 8px; border: 0; padding: 0; margin: 0 0 10px; font-size: .95rem; font-weight: 700; color: var(--navy); }
+  #report.theme-moe .evidence-header::before { content: ""; width: 4px; height: 17px; border-radius: 2px; background: var(--mblue); }
+  #report.theme-moe .evidence-cell { border-color: var(--mblue); border-radius: 8px; background: #fff; }
+  #report.theme-moe .evidence-cell .evidence-cap { color: var(--mmut); }
+
+  @media print {
+    #report.theme-moe .report-card { border: 0; margin: 0; }
+    #report.theme-moe .info-grid, #report.theme-moe .period-row { display: grid; font-size: 1rem; }
+    #report.theme-moe .info-grid { grid-template-columns: repeat(3, 1fr); }
+    #report.theme-moe .period-row { grid-template-columns: 1fr 1fr; }
+    #report.theme-moe .info-grid .info-card, #report.theme-moe .period-row .info-card { display: block; width: auto; margin: 0; }
+    #report.theme-moe .sign-box { text-align: right; }
+  }
+
+  /* style picker shown before print / save */
+  .style-modal { position: fixed; inset: 0; z-index: 50; display: flex; align-items: center; justify-content: center; padding: 16px; background: rgba(13,43,40,.45); }
+  .style-modal[hidden] { display: none; }
+  .style-card { width: 100%; max-width: 440px; background: var(--paper-raised); color: var(--ink); border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); }
+  .style-card h3 { margin: 0 0 4px; font-size: 1.05rem; }
+  .style-card .hint { margin: 0 0 14px; }
+  .style-opt { display: flex; align-items: center; gap: 12px; padding: 10px 12px; margin-bottom: 10px; border: 2px solid var(--line); border-radius: 12px; cursor: pointer; }
+  .style-opt:has(input:checked) { border-color: #3d7eb9; background: rgba(61,126,185,.09); }
+  .style-opt input { width: 18px; height: 18px; accent-color: #3d7eb9; flex: none; }
+  .style-opt b { display: block; font-size: .92rem; }
+  .style-opt span.d { font-size: .76rem; color: var(--ink-soft); }
+  .style-thumb { width: 44px; height: 58px; flex: none; border: 1px solid #d3dee6; border-radius: 4px; background: #fff; overflow: hidden; }
+  .style-thumb i { display: block; height: 12px; background: linear-gradient(90deg, #3B83B7, #4CB176); }
+  .style-thumb.classic i { background: var(--green-deep); }
+  .style-thumb u { display: block; height: 4px; margin: 5px 4px 0; background: #d9e4ee; border-radius: 2px; }
 </style>
 </head>
 <body>
@@ -503,14 +599,16 @@
       <div class="rpt-topbar">
         <div class="rpt-brand">
           <div class="mark" aria-hidden="true"></div>
+          <img class="moe-logo" src="icons/moe-logo.png" alt="وزارة التعليم">
           <div class="rpt-brand-text">
             <div class="rpt-brand-main">وزارة التعليم</div>
             <div class="rpt-brand-sub">الإدارة العامة للتعليم</div>
           </div>
         </div>
+        <div class="moe-center">تقرير فرصة تطوعية</div>
         <div class="rpt-school" id="rSchool"></div>
       </div>
-      <div class="rpt-titlebar"><div class="rpt-kicker">تقرير فرصة تطوعية</div><h2 id="rName"></h2></div>
+      <div class="rpt-titlebar"><div class="rpt-kicker">تقرير فرصة تطوعية</div><span class="moe-lab">الفرصة</span><h2 id="rName"></h2></div>
 
       <div class="report-body">
         <div class="info-grid">
@@ -565,14 +663,16 @@
       <div class="rpt-topbar">
         <div class="rpt-brand">
           <div class="mark" aria-hidden="true"></div>
+          <img class="moe-logo" src="icons/moe-logo.png" alt="وزارة التعليم">
           <div class="rpt-brand-text">
             <div class="rpt-brand-main">وزارة التعليم</div>
             <div class="rpt-brand-sub">الإدارة العامة للتعليم</div>
           </div>
         </div>
+        <div class="moe-center">تقرير فرصة تطوعية</div>
         <div class="rpt-school" id="rSchool3"></div>
       </div>
-      <div class="rpt-titlebar"><h2 id="rNameEvid"></h2></div>
+      <div class="rpt-titlebar"><span class="moe-lab">الفرصة</span><h2 id="rNameEvid"></h2></div>
       <div class="report-body">
         <div class="evidence-header">الشواهد</div>
         <div class="evidence-grid" id="rEvidenceImgs"></div>
@@ -591,6 +691,22 @@
 
   <footer class="note no-print">الفرص وفق بنك الفرص التطوعية المدرسية 2025م — الإدارة العامة للمسؤولية المجتمعية والعمل التطوعي</footer>
   <div class="supervision no-print">بإشراف الأستاذ محمد المصعبي<br>تصميم الأستاذ عبد العزيز المطيري</div>
+</div>
+<div class="style-modal no-print" id="styleModal" hidden>
+  <div class="style-card" role="dialog" aria-modal="true" aria-labelledby="styleTitle">
+    <h3 id="styleTitle">اختر شكل التقرير قبل الطباعة / الحفظ</h3>
+    <p class="hint">يمكنك تغيير الاختيار في كل مرة.</p>
+    <label class="style-opt"><input type="radio" name="rptStyle" value="moe" checked>
+      <span class="style-thumb"><i></i><u></u><u></u><u></u></span>
+      <span><b>الهوية البصرية لوزارة التعليم</b><span class="d">الشعار الرسمي وألوان الهوية وخطها</span></span></label>
+    <label class="style-opt"><input type="radio" name="rptStyle" value="classic">
+      <span class="style-thumb classic"><i></i><u></u><u></u><u></u></span>
+      <span><b>الشكل الكلاسيكي</b><span class="d">التصميم السابق للتقرير</span></span></label>
+    <div class="btn-row">
+      <button class="primary" id="styleGo" type="button">متابعة</button>
+      <button class="ghost" id="styleCancel" type="button">إلغاء</button>
+    </div>
+  </div>
 </div>
 <script>
 if ('serviceWorker' in navigator) {
@@ -963,6 +1079,7 @@ document.getElementById('buildBtn').addEventListener('click', ()=>{
   document.getElementById('rStart').textContent = formatDateForDisplay(document.getElementById('startDate').value) || "—";
   document.getElementById('rEnd').textContent = formatDateForDisplay(document.getElementById('endDate').value) || "—";
 
+  reportSection.classList.toggle('theme-moe', rptStyle === 'moe');
   reportSection.style.display = "block";
   afterBuildRow.style.display = "flex";
   reportSection.scrollIntoView({behavior:'smooth', block:'start'});
@@ -1039,7 +1156,29 @@ let printFired = false;
 window.addEventListener('beforeprint', ()=>{ printFired = true; });
 const printHelp = document.getElementById('printHelp');
 function showPrintHelp(){ printHelp.style.display = 'block'; printHelp.scrollIntoView({block:'nearest'}); }
+// ---------- report style (MOE identity / classic), asked before printing or saving ----------
+const styleModal = document.getElementById('styleModal');
+let rptStyle = 'moe';
+try{ if(localStorage.getItem('rptStyle') === 'classic') rptStyle = 'classic'; }catch(e){}
+function applyReportStyle(v){
+  rptStyle = v === 'classic' ? 'classic' : 'moe';
+  reportSection.classList.toggle('theme-moe', rptStyle === 'moe');
+  try{ localStorage.setItem('rptStyle', rptStyle); }catch(e){}
+  fitForPrint();
+}
+function closeStyleModal(){ styleModal.hidden = true; document.getElementById('printBtn').focus(); }
 document.getElementById('printBtn').addEventListener('click', ()=>{
+  styleModal.querySelectorAll('input[name="rptStyle"]').forEach(r=>{ r.checked = r.value === rptStyle; });
+  styleModal.hidden = false;
+  document.getElementById('styleGo').focus();
+});
+document.getElementById('styleCancel').addEventListener('click', closeStyleModal);
+styleModal.addEventListener('click', e=>{ if(e.target === styleModal) closeStyleModal(); });
+document.addEventListener('keydown', e=>{ if(e.key === 'Escape' && !styleModal.hidden) closeStyleModal(); });
+document.getElementById('styleGo').addEventListener('click', ()=>{
+  const chosen = styleModal.querySelector('input[name="rptStyle"]:checked');
+  styleModal.hidden = true;
+  applyReportStyle(chosen ? chosen.value : 'moe');
   const y = window.scrollY;
   printFired = false;
   printHelp.style.display = 'none';
