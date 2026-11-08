@@ -198,6 +198,17 @@ const CSS = `
 #tkm{position:fixed;inset:0;z-index:1300;background:rgba(8,24,21,.55);display:flex;align-items:flex-end;justify-content:center}
 #tkm[hidden]{display:none}
 #tkm .sheet{background:var(--paper-raised);color:var(--ink);width:100%;max-width:560px;max-height:88vh;overflow-y:auto;border-radius:20px 20px 0 0;padding:16px;font-family:var(--font-body);padding-bottom:calc(20px + env(safe-area-inset-bottom,0px))}
+#tk .tl{display:flex;gap:12px;align-items:center;background:var(--paper-raised);border:2px solid var(--line);border-radius:18px;padding:16px 14px;margin-bottom:12px;cursor:pointer;width:100%;text-align:right;color:var(--ink);font-family:inherit}
+#tk .tl .ic{width:52px;height:52px;border-radius:14px;background:var(--green-pale);display:flex;align-items:center;justify-content:center;font-size:1.6rem;flex:none}
+#tk .tl b{display:block;font-size:1rem;color:var(--green-deep)}#tk .tl small{display:block;color:var(--ink-soft);font-size:.72rem;line-height:1.6;margin-top:2px}
+#tk .prog{display:flex;gap:6px;margin-bottom:10px}#tk .prog i{flex:1;height:6px;border-radius:4px;background:var(--line)}#tk .prog i.on{background:var(--green)}
+#tk .q{font:700 1.2rem var(--font-head);color:var(--green-deep);margin:4px 0}
+#tk .big{display:flex;justify-content:space-between;align-items:center;width:100%;border:2px solid var(--line);background:var(--paper-raised);color:var(--ink);border-radius:16px;padding:16px;margin-bottom:10px;font:700 1rem var(--font-body);cursor:pointer}
+#tk .big small{font-weight:400;color:var(--ink-soft);font-size:.75rem}#tk .big.on{border-color:var(--green);background:var(--green-pale)}
+#tk .chip.bg{padding:10px 18px;border-width:2px;font-size:.95rem;margin-bottom:8px}#tk .chip.bg small{display:block;font-weight:400;color:var(--ink-soft);font-size:.65rem}
+#tk .ctx{display:flex;justify-content:space-between;align-items:center;background:var(--green-pale);border:1px solid var(--green);border-radius:12px;padding:8px 12px;margin-bottom:12px;font-weight:700;color:var(--green-deep);font-size:.85rem}
+#tk .up{border:2px dashed var(--green);border-radius:16px;padding:16px;text-align:center;background:var(--paper-raised);margin-bottom:10px;cursor:pointer;color:var(--green-deep)}
+#tk .okc{width:72px;height:72px;border-radius:50%;background:var(--green);color:#fff;font-size:2.4rem;line-height:72px;margin:0 auto 12px}
 @media print{#tk,#tkm{display:none!important}}`;
 
 let root, modal, tab = 'progress';
@@ -216,7 +227,7 @@ function build(){
   $('#tkX').addEventListener('click', () => { root.hidden = true; document.body.style.overflow = ''; });
   root.querySelectorAll('.tk-tabs button').forEach(b => b.addEventListener('click', () => { tab = b.dataset.t; render(); }));
 }
-async function open(t){ await ready; if(!root) build(); if(t) tab = t; root.hidden = false; document.body.style.overflow = 'hidden'; render(); }
+async function open(t){ await ready; if(!root) build(); if(t) tab = t; SW.view = 'home'; root.hidden = false; document.body.style.overflow = 'hidden'; render(); }
 function render(){
   root.querySelectorAll('.tk-tabs button').forEach(b => b.classList.toggle('on', b.dataset.t === tab));
   const T = {progress:'متابعة الساعات', upload:'تسجيل ساعات', students:'الطلاب', data:'حفظ البيانات'};
@@ -240,7 +251,7 @@ function vProgress(b){
   const T = [['#1c8a5e', '#e6f3ec', 'أكملوا 100%'], ['#2f6fb0', '#eaf1fa', 'من 50% إلى 99%'], ['#b5792a', '#fbf1e2', 'من 25% إلى 49%'], ['#b3402f', '#fbeae7', 'أقل من 25%']];
   const q = norm(F.q), list = all.filter(s => !q || norm(s.name).includes(q)).sort((a, b) => (tot.get(a.id) || 0) - (tot.get(b.id) || 0) || a.name.localeCompare(b.name, 'ar'));
   b.innerHTML = '<div class="sum">' + T.map((t, i) => '<div style="background:' + t[1] + ';color:' + t[0] + '"><b>' + cnt[i] + '</b>' + t[2] + '</div>').join('') + '</div>' + gradeChips(F.grade) +
-    '<div class="row" style="margin-bottom:8px"><select id="fS"><option value="">كل الشعب</option>' + sections(F.grade).map(x => '<option' + (x === F.section ? ' selected' : '') + '>' + esc(x) + '</option>').join('') + '</select><input id="fQ" placeholder="🔍 ابحث باسم الطالب" value="' + esc(F.q) + '"></div>' +
+    '<div class="row" style="margin-bottom:8px"><select id="fS"><option value="">كل الفصول</option>' + sections(F.grade).map(x => '<option' + (x === F.section ? ' selected' : '') + '>' + esc(x) + '</option>').join('') + '</select><input id="fQ" placeholder="🔍 ابحث باسم الطالب" value="' + esc(F.q) + '"></div>' +
     '<div class="note">' + list.length + ' طالب — الأقل إنجازاً أولاً</div><div id="tkList">' + list.slice(0, 300).map(s => studentRow(s, tot)).join('') + '</div>' + (list.length > 300 ? '<div class="note">يُعرض أول 300؛ استخدم البحث.</div>' : '');
   b.querySelectorAll('[data-g]').forEach(x => x.onclick = () => { F.grade = +x.dataset.g; F.section = ''; render(); });
   $('#fS').onchange = e => { F.section = e.target.value; render(); };
@@ -254,7 +265,7 @@ function studentSheet(id){
   modal.innerHTML = '<div class="sheet"><div style="font:700 1.05rem var(--font-head);color:var(--green-deep)">' + esc(s.name) + '</div><div class="note">' + GRADES[s.grade] + (s.section ? ' · ' + esc(s.section) : '') + '</div>' +
     '<div class="c" style="text-align:center"><div style="font:700 2rem var(--font-head);color:' + c + '">' + fmt(p) + '%</div><div class="note">' + fmt(tot) + ' من ' + target + ' ساعة' + (p < 100 ? ' — المتبقي <b>' + fmt(target - tot) + '</b> ساعة' : ' ✓') + '</div><div class="bar" style="width:100%"><i style="width:' + Math.min(p, 100) + '%;background:' + c + '"></i></div></div>' +
     '<div style="font-weight:700;font-size:.85rem">سجل المشاركات</div>' + (recs.length ? recs.map(x => '<div class="st" style="cursor:default"><div class="n">' + esc(x.b ? x.b.opp : '—') + '<small>' + esc(x.b ? x.b.date : '') + (x.b ? ' · ' + x.b.days + ' يوم × ' + fmt(x.b.per) + ' ساعة' : '') + '</small></div><div class="pc" style="color:#1c8a5e">+' + fmt(x.r.hours) + '</div><button class="chip" data-dr="' + x.r.id + '">حذف</button></div>').join('') : '<div class="note">لا توجد مشاركات.</div>') +
-    '<label>الاسم</label><input id="eN" value="' + esc(s.name) + '"><div class="row"><div><label>الصف</label><select id="eG">' + [1, 2, 3].map(g => '<option value="' + g + '"' + (g === s.grade ? ' selected' : '') + '>' + GRADES[g] + '</option>').join('') + '</select></div><div><label>الشعبة</label><input id="eS" value="' + esc(s.section) + '"></div></div>' +
+    '<label>الاسم</label><input id="eN" value="' + esc(s.name) + '"><div class="row"><div><label>الصف</label><select id="eG">' + [1, 2, 3].map(g => '<option value="' + g + '"' + (g === s.grade ? ' selected' : '') + '>' + GRADES[g] + '</option>').join('') + '</select></div><div><label>الفصولة</label><input id="eS" value="' + esc(s.section) + '"></div></div>' +
     '<div class="row" style="margin-top:12px"><button class="btn g" id="eD" style="color:#b3402f">حذف الطالب</button><button class="btn" id="eOk">حفظ</button></div></div>';
   modal.hidden = false;
   modal.querySelectorAll('[data-dr]').forEach(x => x.onclick = async () => { const rid = +x.dataset.dr; await dbDel('records', rid); mem.records = mem.records.filter(r => r.id !== rid); modal.hidden = true; render(); studentSheet(id); });
@@ -263,20 +274,98 @@ function studentSheet(id){
 }
 const strip = s => ({id:s.id, name:s.name, grade:s.grade, section:s.section});
 
-/* --- الطلاب --- */
+/* --- الطلاب: بلاطتان (إضافة يدوي / استيراد) بخطوات: الصف ← الفصل ← الاسم أو الملف --- */
+const SW = {view:'home', mode:'manual', grade:0, section:'', added:[], rows:null, names:[], msg:'', done:'', lq:'', lg:0, ls:''};
+const BACK = {grade:'home', section:'grade', name:'section', imp:'section', impAdv:'imp', list:'home', done:'home'};
+const studWord = n => n === 1 ? 'طالباً واحداً' : n === 2 ? 'طالبين' : n <= 10 ? n + ' طلاب' : n + ' طالباً';
+const sectionsOf = g => { const m = new Map(); mem.students.filter(s => s.grade === g && s.section).forEach(s => m.set(s.section, (m.get(s.section) || 0) + 1)); return [...m].sort((a, b) => a[0].localeCompare(b[0], 'ar')); };
+const gradeCount = g => mem.students.filter(s => s.grade === g).length;
+const go = v => { SW.view = v; SW.msg = ''; render(); };
 function vStudents(b){
-  const byG = [1, 2, 3].map(g => mem.students.filter(s => s.grade === g).length);
-  b.innerHTML = '<div class="c"><b>' + mem.students.length + ' طالب</b><div class="note">' + [1, 2, 3].map((g, i) => GRADES[g] + ': ' + byG[i]).join(' • ') + '</div></div>' +
-    '<div class="c"><b>إضافة طالب يدوياً</b><label>الاسم</label><input id="aN" placeholder="الاسم الثلاثي"><div class="row"><div><label>الصف</label><select id="aG">' + [1, 2, 3].map(g => '<option value="' + g + '">' + GRADES[g] + '</option>').join('') + '</select></div><div><label>الشعبة</label><input id="aS" placeholder="مثال: 1/أ"></div></div><button class="btn" id="aOk" style="margin-top:10px">إضافة</button></div>' +
-    '<div class="c"><b>استيراد قائمة الطلاب</b><div class="note">ملف Excel (xlsx) أو CSV، أو الصق من Excel. أي ترتيب للأعمدة، وستختارها بنفسك في المعاينة.</div>' +
-    '<label class="btn g" style="display:block;text-align:center;margin-bottom:8px">رفع ملف<input type="file" id="iF" accept=".xlsx,.csv,.txt,.tsv" hidden></label><textarea id="iP" rows="3" placeholder="أو الصق هنا"></textarea>' + (IM.msg ? '<div class="warn" style="margin-top:8px">' + esc(IM.msg) + '</div>' : '') + '<div id="iPrev"></div></div>';
-  $('#aOk').onclick = async () => {
-    const n = $('#aN').value.trim(); if(!n) return;
-    await addStudent(n, +$('#aG').value, $('#aS').value.trim()); render();
-  };
-  $('#iF').onchange = async e => { const f = e.target.files[0]; if(!f) return; IM.msg = ''; try{ setImport(await readAny(f)); }catch(err){ IM.msg = readErr(err); IM.rows = null; } render(); };
-  $('#iP').oninput = e => { if(e.target.value.trim()){ IM.msg = ''; setImport(parseDelimited(e.target.value)); drawImport(); } else { IM.rows = null; $('#iPrev').innerHTML = ''; } };
-  if(IM.rows) drawImport();
+  const V = SW.view, steps = {grade:1, section:2, name:3, imp:3};
+  let h = V !== 'home' && V !== 'done' ? '<button class="chip" id="swB" style="margin-bottom:10px">‹ رجوع</button>' : '';
+  if(steps[V]) h += '<div class="prog">' + [1, 2, 3].map(i => '<i class="' + (i <= steps[V] ? 'on' : '') + '"></i>').join('') + '</div>';
+  const ctx = (label) => '<div class="ctx"><span>' + GRADES[SW.grade] + (SW.section && V !== 'section' ? ' · ' + esc(SW.section) : '') + '</span><button class="chip" id="swC">' + label + '</button></div>';
+  if(V === 'home'){
+    h += '<div class="c"><b style="font-size:1.1rem">' + mem.students.length + ' طالباً</b><div class="note">' + [1, 2, 3].map(g => GRADES[g] + ': ' + gradeCount(g)).join(' • ') + '</div></div>' +
+      '<button class="tl" data-go="manual"><span class="ic">✍️</span><span><b>إضافة يدوي</b><small>تضيف الطلاب واحداً بعد واحد في فصل تختاره</small></span></button>' +
+      '<button class="tl" data-go="import"><span class="ic">📥</span><span><b>استيراد</b><small>ملف Excel أو CSV أو لصق من Excel، لفصل واحد</small></span></button>' +
+      '<button class="tl" id="swL" style="padding:14px"><span style="flex:1"><b style="font-size:.9rem">عرض الطلاب وتعديلهم</b></span><span>‹</span></button>';
+  } else if(V === 'grade'){
+    h += '<div class="note">الخطوة 1 من 3</div><div class="q">أي صف؟</div><div class="note">' + (SW.mode === 'manual' ? 'اختر الصف الذي سيُضاف إليه الطلاب.' : 'اختر الصف الذي ستستورد له الأسماء.') + '</div>' +
+      [1, 2, 3].map(g => '<button class="big' + (SW.grade === g ? ' on' : '') + '" data-g="' + g + '"><span>' + GRADES[g] + '</span><small>' + gradeCount(g) + ' طالباً ‹</small></button>').join('');
+  } else if(V === 'section'){
+    h += ctx('تغيير الصف') + '<div class="note">الخطوة 2 من 3</div><div class="q">أي فصل؟</div><div class="note">اختر فصلاً موجوداً أو أنشئ فصلاً جديداً.</div><div>' +
+      sectionsOf(SW.grade).map(([n, c]) => '<button class="chip bg' + (SW.section === n ? ' on' : '') + '" data-sec="' + esc(n) + '">' + esc(n) + '<small>' + c + ' طالباً</small></button>').join('') + '</div>' +
+      '<label>أو فصل جديد</label><input id="swS" placeholder="مثال: ' + SW.grade + '/د" value="' + (sectionsOf(SW.grade).some(x => x[0] === SW.section) ? '' : esc(SW.section)) + '">' +
+      '<button class="btn" id="swN" style="margin-top:12px"' + (SW.section ? '' : ' disabled') + '>التالي</button>';
+  } else if(V === 'name'){
+    h += ctx('تغيير الفصل') + '<div class="q" style="font-size:1.05rem">اسم الطالب</div><input id="swI" autocomplete="off" placeholder="اكتب الاسم الثلاثي…">' +
+      '<div class="note" id="swM" style="color:#b3402f"></div><button class="btn" id="swA">إضافة والانتقال لطالب آخر</button>' +
+      (SW.added.length ? '<div class="note" style="margin-top:12px">أُضيف الآن في هذا الفصل (' + SW.added.length + ')</div><div class="c" style="padding:4px 12px">' + SW.added.map(n => '<div class="st" style="cursor:default"><div class="n">' + esc(n) + '</div><span style="color:#1c8a5e;font-weight:700">✓</span></div>').join('') + '</div>' : '') +
+      '<button class="btn g" id="swD" style="margin-top:8px">تم</button>';
+  } else if(V === 'imp'){
+    h += ctx('تغيير الفصل') + '<div class="note">الخطوة 3 من 3</div><div class="q" style="font-size:1.05rem">ارفع أسماء هذا الفصل</div>' +
+      '<label class="up" style="display:block">📄<br><b>رفع ملف Excel أو CSV</b><input type="file" id="swF" accept=".xlsx,.csv,.txt,.tsv" hidden></label><textarea id="swP" rows="3" placeholder="أو الصق الأسماء هنا (اسم في كل سطر)"></textarea>' +
+      (SW.msg ? '<div class="warn" style="margin-top:8px">' + esc(SW.msg) + '</div>' : '') + '<div id="swPrev"></div>';
+  } else if(V === 'impAdv'){
+    h += '<div class="note">الملف فيه أكثر من فصل أو صف: اختر الأعمدة بنفسك.</div><div id="iPrev"></div>';
+  } else if(V === 'done'){
+    h += '<div style="text-align:center;padding:24px 0 12px"><div class="okc">✓</div><div class="q">' + esc(SW.done) + '</div><div class="note">' + GRADES[SW.grade || 1] + (SW.section ? ' · ' + esc(SW.section) : '') + '</div></div>' +
+      (SW.grade ? '<button class="btn" id="swMore">' + (SW.mode === 'import' ? 'استيراد' : 'إضافة') + ' لفصل آخر في ' + GRADES[SW.grade] + '</button>' : '') +
+      '<button class="btn g" id="swG" style="margin-top:8px">تغيير الصف</button><button class="btn g" id="swL2" style="margin-top:8px">عرض الطلاب</button>';
+  } else if(V === 'list'){
+    const tot = totals(), q = norm(SW.lq), list = mem.students.filter(s => (!SW.lg || s.grade === SW.lg) && (!SW.ls || s.section === SW.ls) && (!q || norm(s.name).includes(q))).sort((a, c) => a.grade - c.grade || a.section.localeCompare(c.section, 'ar') || a.name.localeCompare(c.name, 'ar'));
+    h += gradeChips(SW.lg) + '<div class="row" style="margin-bottom:8px"><select id="lS"><option value="">كل الفصول</option>' + sections(SW.lg).map(x => '<option' + (x === SW.ls ? ' selected' : '') + '>' + esc(x) + '</option>').join('') + '</select><input id="lQ" placeholder="🔍 ابحث باسم الطالب" value="' + esc(SW.lq) + '"></div><div class="note">' + list.length + ' طالب — اضغط على الطالب للتعديل أو الحذف</div>' +
+      list.slice(0, 300).map(s => '<div class="st" data-id="' + s.id + '"><div class="n">' + esc(s.name) + '<small>' + GRADES[s.grade] + (s.section ? ' · ' + esc(s.section) : '') + '</small></div><span style="color:var(--ink-soft)">‹</span></div>').join('');
+  }
+  b.innerHTML = h;
+  const $b = x => $(x, b);
+  if($b('#swB')) $b('#swB').onclick = () => { if(V === 'section' || V === 'grade'){ SW.added = []; } go(BACK[V]); };
+  if($b('#swC')) $b('#swC').onclick = () => { SW.added = []; SW.names = []; SW.rows = null; go(V === 'section' ? 'grade' : 'section'); };
+  b.querySelectorAll('[data-go]').forEach(x => x.onclick = () => { SW.mode = x.dataset.go; SW.grade = 0; SW.section = ''; SW.added = []; SW.rows = null; SW.names = []; go('grade'); });
+  if($b('#swL')) $b('#swL').onclick = () => go('list');
+  if($b('#swL2')) $b('#swL2').onclick = () => go('list');
+  b.querySelectorAll('.big[data-g]').forEach(x => x.onclick = () => { SW.grade = +x.dataset.g; SW.section = ''; go('section'); });
+  b.querySelectorAll('[data-sec]').forEach(x => x.onclick = () => { SW.section = x.dataset.sec; render(); });
+  if($b('#swS')) $b('#swS').oninput = e => { SW.section = e.target.value.trim(); $b('#swN').disabled = !SW.section; b.querySelectorAll('[data-sec]').forEach(x => x.classList.toggle('on', x.dataset.sec === SW.section)); };
+  if($b('#swN')) $b('#swN').onclick = () => { if(SW.section){ SW.added = []; go(SW.mode === 'manual' ? 'name' : 'imp'); } };
+  if(V === 'name'){
+    const inp = $b('#swI'), add = async () => {
+      const n = inp.value.trim(); if(!n) return;
+      const k = toks(n).join('');
+      if(mem.students.some(s => s.sq === k && s.grade === SW.grade && s.section === SW.section)){ $b('#swM').textContent = 'هذا الاسم موجود مسبقاً في هذا الفصل.'; return; }
+      await addStudent(n, SW.grade, SW.section); SW.added.unshift(n); render(); const i2 = $('#swI'); if(i2) i2.focus();
+    };
+    $b('#swA').onclick = add; inp.onkeydown = e => { if(e.key === 'Enter'){ e.preventDefault(); add(); } }; setTimeout(() => inp.focus(), 50);
+    $b('#swD').onclick = () => { if(SW.added.length){ SW.done = 'أُضيف ' + studWord(SW.added.length); SW.added = []; go('done'); } else go('home'); };
+  }
+  if(V === 'imp'){
+    const take = rows => {
+      rows = rows.filter(r => r.some(x => x)); SW.rows = rows;
+      const h0 = rows[0] || [], hdr = h0.some(x => NAME_H.test(x) || GRADE_H.test(x) || SEC_H.test(x));
+      let col = hdr ? h0.findIndex(x => NAME_H.test(String(x).replace(/\s/g, ''))) : 0; if(col < 0) col = 0;
+      SW.names = rows.slice(hdr ? 1 : 0).map(r => (r[col] || '').trim()).filter(Boolean);
+      const seen = new Set(mem.students.filter(s => s.grade === SW.grade && s.section === SW.section).map(s => s.sq));
+      const fresh = [...new Map(SW.names.filter(n => !seen.has(toks(n).join(''))).map(n => [toks(n).join(''), n])).values()];
+      SW.fresh = fresh;
+      $b('#swPrev').innerHTML = fresh.length ? '<div class="ok" style="margin-top:10px"><b>✓ وُجد ' + fresh.length + ' اسماً جديداً</b>' + (SW.names.length - fresh.length ? ' (تجاهلت ' + (SW.names.length - fresh.length) + ' مكرراً)' : '') + '<br>' + fresh.slice(0, 3).map(esc).join('<br>') + (fresh.length > 3 ? '<br>…' : '') + '</div>' +
+        '<button class="btn" id="swGo">استيراد ' + studWord(fresh.length) + '</button><button class="chip" id="swAdv" style="margin-top:10px;display:block;border:0;background:none;color:#2f6fb0;text-decoration:underline;width:100%">الملف فيه أكثر من فصل أو صف؟ اختر الأعمدة بنفسك</button>' : '<div class="warn" style="margin-top:10px">لم أجد أسماء جديدة في هذا الملف.</div>';
+      if($b('#swGo')) $b('#swGo').onclick = async () => { const f = SW.fresh; for(const n of f) await addStudent(n, SW.grade, SW.section); SW.done = 'أُضيف ' + studWord(f.length); go('done'); };
+      if($b('#swAdv')) $b('#swAdv').onclick = () => { setImport(SW.rows); IM.fixedGrade = SW.grade; IM.fixedSection = ''; go('impAdv'); };
+    };
+    $b('#swF').onchange = async e => { const f = e.target.files[0]; if(!f) return; try{ SW.msg = ''; take(await readAny(f)); }catch(err){ SW.msg = readErr(err); render(); } };
+    $b('#swP').oninput = e => { if(e.target.value.trim()) take(parseDelimited(e.target.value)); else $b('#swPrev').innerHTML = ''; };
+  }
+  if(V === 'impAdv'){ drawImport(); }
+  if($b('#swMore')) $b('#swMore').onclick = () => { SW.section = ''; SW.added = []; SW.rows = null; go('section'); };
+  if($b('#swG')) $b('#swG').onclick = () => { SW.grade = 0; SW.section = ''; go('grade'); };
+  if(V === 'list'){
+    b.querySelectorAll('[data-g]').forEach(x => x.onclick = () => { SW.lg = +x.dataset.g; SW.ls = ''; render(); });
+    $b('#lS').onchange = e => { SW.ls = e.target.value; render(); };
+    $b('#lQ').oninput = e => { SW.lq = e.target.value; const k = e.target.selectionStart; render(); const i = $('#lQ'); i.focus(); i.setSelectionRange(k, k); };
+    b.querySelectorAll('.st[data-id]').forEach(x => x.onclick = () => studentSheet(+x.dataset.id));
+  }
 }
 const NAME_H = /الاسم|اسم|name|volunteername/i, GRADE_H = /الصف|المرحله|المرحلة|grade|level/i, SEC_H = /الشعبه|الشعبة|الفصل|section|class/i;
 function setImport(rows){
@@ -299,9 +388,9 @@ function drawImport(){
   const opts = (cur, none) => (none ? '<option value="-1"' + (cur < 0 ? ' selected' : '') + '>— بدون —</option>' : '') + Array.from({length:w}, (_, i) => '<option value="' + i + '"' + (i === cur ? ' selected' : '') + '>' + (IM.header ? esc(h[i] || 'عمود ' + (i + 1)) : 'عمود ' + (i + 1)) + '</option>').join('');
   const rows = importRows(), c = IM.cols;
   prevEl.innerHTML = '<div class="note" style="margin-top:8px"><b>اختر الأعمدة</b> (وُجد ' + rows.length + ' سطراً):</div>' +
-    '<label>عمود الاسم</label><select id="mN">' + opts(c.name) + '</select><div class="row"><div><label>عمود الصف</label><select id="mG">' + opts(c.grade, 1) + '</select></div><div><label>عمود الشعبة</label><select id="mS">' + opts(c.section, 1) + '</select></div></div>' +
-    '<div class="row"><div id="fgw"><label>صف ثابت للكل</label><select id="fG"><option value="0">—</option>' + [1, 2, 3].map(g => '<option value="' + g + '"' + (IM.fixedGrade === g ? ' selected' : '') + '>' + GRADES[g] + '</option>').join('') + '</select></div><div><label>شعبة ثابتة للكل</label><input id="fSx" value="' + esc(IM.fixedSection) + '" placeholder="مثال: 1/أ"></div></div>' +
-    '<table style="margin-top:8px"><tr><th>الاسم</th><th>الصف</th><th>الشعبة</th></tr>' + rows.slice(0, 5).map(r => '<tr><td>' + esc(r.name) + '</td><td>' + (GRADES[IM.fixedGrade || r.grade] || '<span style="color:#b3402f">؟</span>') + '</td><td>' + esc(IM.fixedSection || r.section) + '</td></tr>').join('') + '</table>' +
+    '<label>عمود الاسم</label><select id="mN">' + opts(c.name) + '</select><div class="row"><div><label>عمود الصف</label><select id="mG">' + opts(c.grade, 1) + '</select></div><div><label>عمود الفصولة</label><select id="mS">' + opts(c.section, 1) + '</select></div></div>' +
+    '<div class="row"><div id="fgw"><label>صف ثابت للكل</label><select id="fG"><option value="0">—</option>' + [1, 2, 3].map(g => '<option value="' + g + '"' + (IM.fixedGrade === g ? ' selected' : '') + '>' + GRADES[g] + '</option>').join('') + '</select></div><div><label>فصل ثابتة للكل</label><input id="fSx" value="' + esc(IM.fixedSection) + '" placeholder="مثال: 1/أ"></div></div>' +
+    '<table style="margin-top:8px"><tr><th>الاسم</th><th>الصف</th><th>الفصولة</th></tr>' + rows.slice(0, 5).map(r => '<tr><td>' + esc(r.name) + '</td><td>' + (GRADES[IM.fixedGrade || r.grade] || '<span style="color:#b3402f">؟</span>') + '</td><td>' + esc(IM.fixedSection || r.section) + '</td></tr>').join('') + '</table>' +
     '<button class="btn" id="iGo" style="margin-top:10px">استيراد ' + rows.length + ' طالب</button>';
   const re = () => { IM.cols = {name:+$('#mN').value, grade:+$('#mG').value, section:+$('#mS').value}; IM.fixedGrade = +$('#fG').value; IM.fixedSection = $('#fSx').value.trim(); drawImport(); };
   ['mN', 'mG', 'mS', 'fG'].forEach(id => $('#' + id).onchange = re); $('#fSx').onchange = re;
@@ -316,7 +405,8 @@ function drawImport(){
     }
     for(const f of fresh){ await addStudent(f.name, f.grade, f.section); added++; }
     IM.rows = null; IM.msg = '';
-    render(); const b = $('#tkB'); const o = document.createElement('div'); o.className = 'ok'; o.textContent = 'أُضيف ' + added + ' طالباً' + (dup ? ' • تجاهل ' + dup + ' مكرراً' : '') + (noG ? ' • تعذّر تحديد الصف لـ ' + noG : ''); b.prepend(o);
+    SW.done = 'أُضيف ' + studWord(added) + (dup ? ' • تجاهل ' + dup + ' مكرراً' : '') + (noG ? ' • تعذّر تحديد الصف لـ ' + noG : ''); SW.grade = 0; SW.section = '';
+    go('done');
   };
 }
 
@@ -386,13 +476,13 @@ function reviewRow(it, i){
   const cands = it.m.cands;
   return '<div style="border-top:1px solid var(--line);padding:8px 0"><div style="font-weight:600;font-size:.85rem">' + esc(it.name) + ' <span class="note">(' + fmt(it.per) + ' ساعة)</span></div><select data-pk="' + i + '"><option value="">تجاهل</option>' +
     cands.map(c => '<option value="' + c.id + '"' + (c.id === it.pick ? ' selected' : '') + '>' + esc(c.name) + ' — ' + GRADES[c.grade] + (c.section ? ' ' + esc(c.section) : '') + '</option>').join('') + '<option value="__n">+ إضافته طالباً جديداً</option></select>' +
-    '<div class="row" data-nw="' + i + '" hidden style="margin-top:6px"><select data-ng="' + i + '">' + [1, 2, 3].map(g => '<option value="' + g + '">' + GRADES[g] + '</option>').join('') + '</select><input data-ns="' + i + '" placeholder="الشعبة"></div></div>';
+    '<div class="row" data-nw="' + i + '" hidden style="margin-top:6px"><select data-ng="' + i + '">' + [1, 2, 3].map(g => '<option value="' + g + '">' + GRADES[g] + '</option>').join('') + '</select><input data-ns="' + i + '" placeholder="الفصولة"></div></div>';
 }
 function drawManual(){
   const el = $('#uBody'); if(!el) return;
   const q = norm(U.mq), tot = totals();
   const list = mem.students.filter(s => (!U.mg || s.grade === U.mg) && (!U.ms || s.section === U.ms) && (!q || norm(s.name).includes(q)));
-  el.innerHTML = '<div class="c">' + gradeChips(U.mg) + '<div class="row"><select id="mS2"><option value="">كل الشعب</option>' + sections(U.mg).map(x => '<option' + (x === U.ms ? ' selected' : '') + '>' + esc(x) + '</option>').join('') + '</select><input id="mQ" placeholder="🔍 بحث" value="' + esc(U.mq) + '"></div>' +
+  el.innerHTML = '<div class="c">' + gradeChips(U.mg) + '<div class="row"><select id="mS2"><option value="">كل الفصول</option>' + sections(U.mg).map(x => '<option' + (x === U.ms ? ' selected' : '') + '>' + esc(x) + '</option>').join('') + '</select><input id="mQ" placeholder="🔍 بحث" value="' + esc(U.mq) + '"></div>' +
     '<div class="row" style="margin:8px 0"><button class="btn g" id="sAll">تحديد الظاهرين (' + list.length + ')</button><button class="btn g" id="sNone">إلغاء التحديد</button></div>' +
     '<div style="max-height:300px;overflow-y:auto">' + list.slice(0, 200).map(s => '<label class="st" style="margin:0"><input type="checkbox" class="ck" data-s="' + s.id + '"' + (U.manualSel.has(s.id) ? ' checked' : '') + '><span class="n">' + esc(s.name) + '<small>' + GRADES[s.grade] + (s.section ? ' · ' + esc(s.section) : '') + '</small></span></label>').join('') + '</div></div>' +
     '<div class="c" id="uSum"></div><button class="btn" id="uSave">حفظ الدفعة</button>';
