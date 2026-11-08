@@ -390,7 +390,7 @@
   .moe-logo, .moe-center, .moe-lab { display: none; }
 
   #report.theme-moe {
-    --navy: #15445a; --mline: #a9c0d0; --mbg: #e6eff6; --mmut: #526c7b; --mblue: #3d7eb9;
+    --navy: #15445a; --mline: #5f8aa8; --mbg: #e6eff6; --mmut: #526c7b; --mblue: #3d7eb9;
     --moe-font: 'Helvetica Neue W23 for SKY', var(--font-body);
     --moe-grad: linear-gradient(90deg, #3B83B7, #4CB176);
   }
@@ -419,20 +419,20 @@
   #report.theme-moe .report-body { padding: 0 28px 8px; }
 
   #report.theme-moe .info-grid, #report.theme-moe .period-row {
-    gap: 0; background: transparent; border: 1.5px solid var(--mline); overflow: hidden;
+    gap: 0; background: transparent; border: 2px solid var(--mline); overflow: hidden;
   }
   #report.theme-moe .info-grid { margin: 0; border-bottom: 0; border-radius: 8px 8px 0 0; }
   #report.theme-moe .period-row { margin: 0 0 18px; border-radius: 0 0 8px 8px; }
   #report.theme-moe .info-card { display: block; border: 0; border-radius: 0; background: #f3f8fc; padding: 10px 16px 12px; }
   /* cell dividers are real borders (same width/color as the boxes), not grid gaps */
-  #report.theme-moe .info-grid .info-card:not(:nth-child(3n+1)) { border-inline-start: 1.5px solid var(--mline); }
-  #report.theme-moe .info-grid .info-card:nth-child(n+4) { border-top: 1.5px solid var(--mline); }
-  #report.theme-moe .period-row .info-card + .info-card { border-inline-start: 1.5px solid var(--mline); }
+  #report.theme-moe .info-grid .info-card:not(:nth-child(3n+1)) { border-inline-start: 2px solid var(--mline); }
+  #report.theme-moe .info-grid .info-card:nth-child(n+4) { border-top: 2px solid var(--mline); }
+  #report.theme-moe .period-row .info-card + .info-card { border-inline-start: 2px solid var(--mline); }
   @media screen and (max-width: 480px) {
     #report.theme-moe .info-grid .info-card:not(:nth-child(3n+1)) { border-inline-start: 0; }
-    #report.theme-moe .info-grid .info-card:nth-child(even) { border-inline-start: 1.5px solid var(--mline); }
+    #report.theme-moe .info-grid .info-card:nth-child(even) { border-inline-start: 2px solid var(--mline); }
     #report.theme-moe .info-grid .info-card:nth-child(n+4) { border-top: 0; }
-    #report.theme-moe .info-grid .info-card:nth-child(n+3) { border-top: 1.5px solid var(--mline); }
+    #report.theme-moe .info-grid .info-card:nth-child(n+3) { border-top: 2px solid var(--mline); }
   }
   #report.theme-moe .info-icon { display: none; }
   #report.theme-moe .info-card > div { display: flex; flex-direction: column-reverse; gap: 6px; }
@@ -444,10 +444,10 @@
   #report.theme-moe .box-section h3::before { content: ""; width: 4px; height: 17px; border-radius: 2px; background: var(--mblue); flex: none; }
   #report.theme-moe .box-icon { display: none; }
   #report.theme-moe .box-section > p, #report.theme-moe .box-section > .tag-row, #report.theme-moe .box-section > ol.tasks {
-    margin: 0; padding: 11px 16px; background: var(--mbg); border: 1.5px solid var(--mline); border-radius: 8px; color: var(--navy);
+    margin: 0; padding: 11px 16px; background: var(--mbg); border: 2px solid var(--mline); border-radius: 8px; color: var(--navy);
   }
   #report.theme-moe #rEvidenceSection > p { background: #fff; border-color: var(--mblue); }
-  #report.theme-moe .tag { background: #fff; color: var(--navy); border: 1.5px solid var(--mblue); font-weight: 700; }
+  #report.theme-moe .tag { background: #fff; color: var(--navy); border: 2px solid var(--mblue); font-weight: 700; }
   #report.theme-moe ol.tasks { list-style: none; counter-reset: tk; }
   #report.theme-moe ol.tasks li { counter-increment: tk; display: flex; align-items: center; gap: 10px; line-height: 2; color: var(--navy); }
   #report.theme-moe ol.tasks li::before {
@@ -456,7 +456,7 @@
   }
 
   #report.theme-moe .sign-row { gap: 26px; margin-top: 30px; }
-  #report.theme-moe .sign-box { border: 0; border-top: 1.5px solid var(--navy); border-radius: 0; padding: 6px 0 0; text-align: right; }
+  #report.theme-moe .sign-box { border: 0; border-top: 2px solid var(--navy); border-radius: 0; padding: 6px 0 0; text-align: right; }
   #report.theme-moe .sign-role { color: var(--mmut); }
   #report.theme-moe .sign-name { color: var(--navy); font-weight: 700; }
 
