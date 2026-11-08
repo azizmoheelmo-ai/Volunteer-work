@@ -822,13 +822,15 @@
       n1: document.getElementById('signPrincipal').value.trim(), n2: document.getElementById('signCoordinator').value.trim(), n3: document.getElementById('signVice').value.trim()
     };
   }
+  let gSeq = 0;
   function certHTML(d, logoUrl){
+    const gid = 'ctg' + (++gSeq);
     const g = d.g, vars = `--dark:${g.dark};--acc:${g.acc};--mut:${g.mut};--g1:${g.g1};--g2:${g.g2}`;
     const line2 = [d.hours ? `بواقع <b>${esc(d.hours)}</b> تطوعية` : '', d.from && d.to ? `خلال الفترة من <b>${esc(d.from)}</b> إلى <b>${esc(d.to)}</b>` : ''].filter(Boolean).join('، ');
     const nameSize = d.name.length > 26 ? 34 : 40;
     return `<div class="ct" style="${vars}"><div class="ab fr"></div><div class="ab fr2"></div>
-      <svg class="ab" style="top:54px;left:50%;margin-left:-60px" width="120" height="150" viewBox="0 0 120 150"><defs><linearGradient id="ctg" x1="0" x2="1"><stop offset="0" stop-color="${g.g1}"/><stop offset="1" stop-color="${g.g2}"/></linearGradient></defs>
-        <path d="M32 70 L18 146 L48 130 L60 146 L72 130 L102 146 L88 70Z" fill="${g.dark}"/><circle cx="60" cy="52" r="46" fill="url(#ctg)"/><circle cx="60" cy="52" r="37" fill="none" stroke="#fff" stroke-width="2.5" stroke-dasharray="2 6" stroke-linecap="round"/>
+      <svg class="ab" style="top:54px;left:50%;margin-left:-60px" width="120" height="150" viewBox="0 0 120 150"><defs><linearGradient id="${gid}" x1="0" x2="1"><stop offset="0" stop-color="${g.g1}"/><stop offset="1" stop-color="${g.g2}"/></linearGradient></defs>
+        <path d="M32 70 L18 146 L48 130 L60 146 L72 130 L102 146 L88 70Z" fill="${g.dark}"/><circle cx="60" cy="52" r="46" fill="url(#${gid})"/><circle cx="60" cy="52" r="37" fill="none" stroke="#fff" stroke-width="2.5" stroke-dasharray="2 6" stroke-linecap="round"/>
         <text x="60" y="${d.num ? 48 : 58}" text-anchor="middle" fill="#fff" font-size="${d.num ? 30 : 22}" font-weight="700" font-family="'Helvetica Neue W23 for SKY',Tahoma">${d.num || 'تطوع'}</text>${d.num ? '<text x="60" y="70" text-anchor="middle" fill="#fff" font-size="15" font-family="\'Helvetica Neue W23 for SKY\',Tahoma">ساعات</text>' : ''}</svg>
       <img class="ab" src="${logoUrl}" style="height:52px;top:66px;right:90px">
       <div class="ab" style="top:72px;left:90px;color:var(--mut);font-size:16px;line-height:1.7">${esc(d.school)}</div>
@@ -838,20 +840,26 @@
       <div class="sig"><div><b>${g.vp}</b><i>${esc(d.n3)}</i></div><div><b>${g.co}</b><i>${esc(d.n2)}</i></div><div><b>${g.pn}</b><i>${esc(d.n1)}</i></div></div></div>`;
   }
   function printCert(note){
-    const d = certData(), base = new URL('.', location.href).href;
-    const font = w => `@font-face{font-family:'Helvetica Neue W23 for SKY';src:url('${base}fonts/HelveticaNeueW23forSKY-${w}.ttf');font-weight:${w === 'Bold' ? 700 : 400}}`;
-    const doc = `<!DOCTYPE html><html lang="ar" dir="rtl"><meta charset="utf-8"><style>${font('Regular')}${font('Bold')}@page{size:A4 landscape;margin:0}html,body{margin:0;background:#fff;width:1123px;height:793px;overflow:hidden}${CERT_CSS}</style><body>${certHTML(d, base + 'icons/moe-logo.png')}</body></html>`;
-    const fr = document.createElement('iframe');
-    fr.style.cssText = 'position:fixed;left:-9999px;top:0;width:1123px;height:794px;border:0';
+    const d = certData();
+    const font = 'Helvetica Neue W23 for SKY';
+    const holder = document.createElement('div');
+    holder.id = 'certPrint'; holder.innerHTML = certHTML(d, 'icons/moe-logo.png');
+    // landscape A4: the page rule and the "only the certificate" rule live only while printing it, so the report keeps printing portrait
+    const st = document.createElement('style');
+    st.textContent = '@page{size:A4 landscape;margin:0}#certPrint{display:none}' +
+      '@media print{html,body{margin:0!important;padding:0!important;background:#fff!important;width:1123px;height:793px;overflow:hidden}' +
+      'body>*:not(#certPrint){display:none!important}#certPrint{display:block!important;width:1123px;height:793px;overflow:hidden}' +
+      '#certPrint .ct{margin:0}}';
+    document.head.appendChild(st); document.body.appendChild(holder);
     let fired = false;
-    fr.onload = () => {
-      const w = fr.contentWindow;
-      w.addEventListener('beforeprint', () => { fired = true; });
-      const go = () => { try{ w.focus(); w.print(); }catch(e){ note(true); } setTimeout(() => { if(!fired) note(true); }, 1500); };
-      (w.document.fonts ? Promise.race([w.document.fonts.ready, new Promise(r => setTimeout(r, 2500))]) : Promise.resolve()).then(() => setTimeout(go, 200));
-    };
-    fr.srcdoc = doc; document.body.appendChild(fr);
-    setTimeout(() => fr.remove(), 120000);
+    const clean = () => { holder.remove(); st.remove(); removeEventListener('afterprint', clean); };
+    addEventListener('beforeprint', () => { fired = true; }, {once:true});
+    addEventListener('afterprint', clean);
+    const go = () => { try{ window.print(); }catch(e){ note(true); clean(); return; } setTimeout(() => { if(!fired){ note(true); clean(); } }, 1500); };
+    const ready = document.fonts ? Promise.race([document.fonts.load("700 20px '" + font + "'", 'ابجد').then(() => document.fonts.load("400 20px '" + font + "'", 'ابجد')), new Promise(r => setTimeout(r, 2500))]) : Promise.resolve();
+    const logo = holder.querySelector('img');
+    const imgOk = logo && !logo.complete ? new Promise(r => { logo.onload = logo.onerror = r; setTimeout(r, 1500); }) : Promise.resolve();
+    Promise.all([ready, imgOk]).then(() => setTimeout(go, 100));
   }
   function previewNode(){
     const box = document.createElement('div'); box.className = 'wz-prev';
