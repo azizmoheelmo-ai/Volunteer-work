@@ -1110,7 +1110,7 @@ document.getElementById('buildBtn').addEventListener('click', ()=>{
 // ---------- fit the printout to at most two A4 pages ----------
 // A4 minus the 10mm @page margins, in CSS px, with headroom for browser headers/footers
 const PRINT_W = 718;
-const PRINT_H = 1047 * 0.9;
+const PRINT_H = 1047 * 0.84;
 const MIN_ZOOM = 0.45;
 
 function fitForPrint(){
@@ -1186,6 +1186,12 @@ function showPrintHelp(){ printHelp.style.display = 'block'; printHelp.scrollInt
 const styleModal = document.getElementById('styleModal');
 let rptStyle = 'moe';
 try{ if(localStorage.getItem('rptStyle') === 'classic') rptStyle = 'classic'; }catch(e){}
+const MOE_FONTS = ['400 16px "Helvetica Neue W23 for SKY"', '700 16px "Helvetica Neue W23 for SKY"'];
+function loadMoeFonts(){
+  return document.fonts ? Promise.all(MOE_FONTS.map(f=>document.fonts.load(f, 'ابجد abc 123'))).then(fitForPrint, ()=>{}) : Promise.resolve();
+}
+loadMoeFonts(); // preload at startup so it is ready long before printing
+if(document.fonts) document.fonts.addEventListener('loadingdone', fitForPrint);
 function applyReportStyle(v){
   rptStyle = v === 'classic' ? 'classic' : 'moe';
   reportSection.classList.toggle('theme-moe', rptStyle === 'moe');
@@ -1208,9 +1214,16 @@ document.getElementById('styleGo').addEventListener('click', ()=>{
   const y = window.scrollY;
   printFired = false;
   printHelp.style.display = 'none';
-  try{ fitForPrint(); window.print(); }catch(e){ showPrintHelp(); return; }
-  window.scrollTo(0, y); // measuring must not move the page
-  setTimeout(()=>{ if(!printFired) showPrintHelp(); }, 1200);
+  // The ministry font loads lazily the first time the MOE style is used. Measuring with the
+  // fallback font under-estimates the height and page 1 then spills over, so wait for it.
+  const go = ()=>{
+    try{ fitForPrint(); window.print(); }catch(e){ showPrintHelp(); return; }
+    window.scrollTo(0, y); // measuring must not move the page
+    setTimeout(()=>{ if(!printFired) showPrintHelp(); }, 1200);
+  };
+  if(rptStyle === 'moe' && document.fonts && !MOE_FONTS.every(f=>document.fonts.check(f))){
+    Promise.race([loadMoeFonts(), new Promise(r=>setTimeout(r, 2500))]).then(go);
+  } else go();
 });
 document.getElementById('copyLinkBtn').addEventListener('click', async ()=>{
   const btn = document.getElementById('copyLinkBtn');
