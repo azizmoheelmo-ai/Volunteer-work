@@ -538,19 +538,118 @@
   .wz-prev .ct { position: absolute; top: 0; right: 0; transform-origin: top right; }
   .wz-note { margin-top: 10px; font-size: .8rem; color: var(--amber); line-height: 1.7; }
   @media print { .wz-fab, .wz-dim, .wz { display: none !important; } }
+
+  /* ---------- home screen, tiles and motion (screen only; printing is unchanged) ---------- */
+  header.top { position: sticky; top: 0; z-index: 30; margin: 0 -18px 16px; padding: 12px 18px; background: color-mix(in srgb, var(--paper) 94%, transparent); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); transition: padding .2s ease, box-shadow .2s ease; }
+  header.top.scrolled { padding-top: 6px; padding-bottom: 6px; box-shadow: 0 1px 0 var(--line); }
+  header.top.scrolled p { display: none; }
+  .hdr-logo { height: 46px; width: auto; flex: none; background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 4px 8px; transition: height .2s ease; }
+  header.top.scrolled .hdr-logo { height: 34px; }
+  .home-lead { font: 700 .95rem var(--font-head); color: var(--green-deep); margin: 4px 0 12px; }
+  .home-notice { margin: 0 0 12px; padding: 10px 14px; border-radius: 12px; background: var(--green-pale); color: var(--green-deep); font-weight: 600; font-size: .88rem; }
+  .home-notice[hidden], #home[hidden], #classicForm[hidden] { display: none; }
+  .hcard { display: flex; align-items: center; gap: 14px; width: 100%; text-align: right; padding: 16px; margin-bottom: 12px; border: 1.5px solid var(--line); border-radius: 18px; background: var(--paper-raised); color: var(--ink); font-family: var(--font-body); cursor: pointer; box-shadow: var(--shadow); transition: transform .15s ease, border-color .15s ease; }
+  .hcard:hover { border-color: var(--green); }
+  .hcard:active { transform: scale(.98); }
+  .hcard .hi { width: 54px; height: 54px; border-radius: 15px; flex: none; display: grid; place-items: center; background: var(--green-pale); color: var(--green-deep); }
+  .hcard.amber .hi { background: var(--amber-pale); color: var(--amber); }
+  .hcard .hi svg { width: 28px; height: 28px; }
+  .hcard b { display: block; font: 700 1.02rem var(--font-head); margin-bottom: 2px; }
+  .hcard .d { font-size: .8rem; color: var(--ink-soft); }
+  .hcard .chev { margin-inline-start: auto; width: 20px; height: 20px; flex: none; color: var(--ink-soft); }
+  .home-adv { display: block; margin: 4px auto 0; padding: 8px 12px; background: none; border: 0; color: var(--ink-soft); font: 600 .82rem var(--font-body); text-decoration: underline; cursor: pointer; }
+
+  .reveal { opacity: 0; }
+  .reveal.in { opacity: 1; animation: revealIn .55s cubic-bezier(.2,.7,.2,1) backwards; animation-delay: var(--d, 0ms); }
+  @keyframes revealIn { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
+
+  .wz-chips { display: flex; gap: 6px; overflow-x: auto; margin: 0 0 10px; padding-bottom: 4px; scrollbar-width: none; }
+  .wz-chips::-webkit-scrollbar { display: none; }
+  .wz-chip { flex: none; padding: 7px 14px; border-radius: 999px; border: 1.5px solid var(--line); background: var(--paper); color: var(--ink-soft); font: 600 .82rem var(--font-body); cursor: pointer; }
+  .wz-chip.on { background: var(--green-deep); border-color: var(--green-deep); color: #fff; }
+  .wz-search { width: 100%; margin-bottom: 10px; }
+  .wz-tiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-bottom: 10px; }
+  .wz-t { display: flex; flex-direction: column; align-items: flex-start; gap: 7px; min-height: 108px; padding: 12px; text-align: right; border: 1.5px solid var(--line); border-radius: 14px; background: var(--paper); color: var(--ink); font: 700 .86rem/1.4 var(--font-body); cursor: pointer; transition: transform .12s ease, border-color .15s ease, background .15s ease; animation: tileIn .35s backwards; animation-delay: var(--d, 0ms); }
+  .wz-tiles.noanim .wz-t { animation: none; }
+  .wz-t:active { transform: scale(.96); }
+  .wz-t.on { border-color: var(--green); background: var(--green-pale); animation: tilePop .25s; }
+  .wz-t .ti { width: 38px; height: 38px; border-radius: 11px; display: grid; place-items: center; background: var(--green-pale); color: var(--green-deep); }
+  .wz-t.on .ti { background: var(--green-deep); color: #fff; }
+  .wz-t .ti svg { width: 22px; height: 22px; }
+  .wz-t small { font-weight: 400; font-size: .72rem; color: var(--ink-soft); }
+  .wz-t .lv { font: 600 .7rem var(--font-body); padding: 1px 8px; border-radius: 999px; background: var(--green-pale); color: var(--green-deep); }
+  .wz-t.on .lv { background: #fff; }
+  .wz-t.wide { grid-column: 1 / -1; min-height: 0; flex-direction: row; align-items: center; gap: 10px; }
+  .wz-empty { grid-column: 1 / -1; text-align: center; color: var(--ink-soft); font-size: .85rem; padding: 16px 0; }
+  .wz-why { max-width: 520px; width: 100%; margin: 0 auto; padding: 0 16px; font-size: .78rem; color: var(--amber); min-height: 1.3em; text-align: center; }
+  .wz-quick { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 12px; }
+  .wz-quick button { min-width: 54px; padding: 10px 14px; border-radius: 12px; border: 1.5px solid var(--line); background: var(--paper); color: var(--ink); font: 700 .95rem var(--font-head); cursor: pointer; transition: transform .12s ease; }
+  .wz-quick button:active { transform: scale(.94); }
+  .wz-quick button.on { border-color: var(--green); background: var(--green-pale); color: var(--green-deep); }
+  .wz-pick button svg { width: 30px; height: 30px; display: block; margin: 0 auto 6px; }
+  .wz .field:has(#oppLevel) { display: none; }
+  .wz-tile.in-next { animation: slideFromLeft .3s cubic-bezier(.2,.7,.2,1); }
+  .wz-tile.in-prev { animation: slideFromRight .3s cubic-bezier(.2,.7,.2,1); }
+  @keyframes tileIn { from { opacity: 0; transform: translateY(12px) scale(.97); } to { opacity: 1; transform: none; } }
+  @keyframes tilePop { 0% { transform: scale(.94); } 60% { transform: scale(1.03); } 100% { transform: scale(1); } }
+  @keyframes slideFromLeft { from { opacity: 0; transform: translateX(-36px); } to { opacity: 1; transform: none; } }
+  @keyframes slideFromRight { from { opacity: 0; transform: translateX(36px); } to { opacity: 1; transform: none; } }
+
+  /* the finished report, shown as tiles on screen. fitForPrint() measures with .fit-measure, which switches this off,
+     and none of it applies to printing, so the printed pages are exactly as before */
+  @media screen {
+    #report:not(.fit-measure) .info-grid, #report:not(.fit-measure) .period-row { display: grid !important; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; border: 0 !important; border-radius: 0 !important; overflow: visible; background: transparent; margin: 0 0 10px; }
+    #report:not(.fit-measure) .info-card { border: 1.5px solid var(--mline, var(--blue)) !important; border-radius: 14px !important; box-shadow: 0 1px 2px rgba(13,43,40,.05); }
+    #report:not(.fit-measure).theme-moe .box-section > p, #report:not(.fit-measure).theme-moe .box-section > .tag-row, #report:not(.fit-measure).theme-moe .box-section > ol.tasks { border-radius: 14px; box-shadow: 0 1px 2px rgba(13,43,40,.05); }
+    #report:not(.fit-measure) .sign-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+    #report:not(.fit-measure) .sign-box { border: 1.5px solid var(--mline, var(--line)) !important; border-radius: 14px !important; padding: 10px 12px !important; text-align: center !important; }
+    #report:not(.fit-measure) .sign-box:last-child:nth-child(odd) { grid-column: 1 / -1; }
+    #report:not(.fit-measure) .evidence-cell { border-radius: 14px; }
+  }
+  @media screen and (prefers-reduced-motion: no-preference) {
+    #report .rpt-titlebar, #report .report-body > *, #report .info-card, #report .evidence-cell { animation: tileIn .5s backwards; }
+    #report .report-body > :nth-child(2) { animation-delay: .1s; } #report .report-body > :nth-child(3) { animation-delay: .16s; }
+    #report .report-body > :nth-child(4) { animation-delay: .22s; } #report .report-body > :nth-child(5) { animation-delay: .28s; }
+    #report .report-body > :nth-child(6) { animation-delay: .34s; } #report .report-body > :nth-child(7) { animation-delay: .4s; }
+    #report .info-grid .info-card:nth-child(1) { animation-delay: .05s; } #report .info-grid .info-card:nth-child(2) { animation-delay: .1s; }
+    #report .info-grid .info-card:nth-child(3) { animation-delay: .15s; } #report .info-grid .info-card:nth-child(4) { animation-delay: .2s; }
+    #report .info-grid .info-card:nth-child(5) { animation-delay: .25s; } #report .info-grid .info-card:nth-child(6) { animation-delay: .3s; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .reveal { opacity: 1; } .reveal.in, .wz-t, .wz-t.on, .wz-tile.in-next, .wz-tile.in-prev { animation: none !important; }
+    header.top, .hdr-logo { transition: none; }
+  }
+  @media print { .reveal { opacity: 1 !important; } header.top { display: none !important; } }
 </style>
 </head>
 <body>
 <div class="wrap">
 
   <header class="top">
-    <div class="mark" aria-hidden="true"></div>
+    <img class="hdr-logo" src="icons/moe-logo.png" alt="وزارة التعليم">
     <div>
-      <h1>تقرير فرصة تطوعية مدرسية</h1>
-      <p>بحسب بنك الفرص التطوعية المدرسية — وزارة التعليم</p>
+      <h1>التطوع المدرسي</h1>
+      <p>بنك الفرص التطوعية المدرسية — وزارة التعليم</p>
     </div>
   </header>
 
+  <section id="home" class="no-print">
+    <div class="home-notice" id="homeNotice" hidden></div>
+    <div class="home-lead">ماذا تريد أن تنشئ؟</div>
+    <button class="hcard" id="homeReport" type="button">
+      <span class="hi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></svg></span>
+      <span><b>تقرير فرصة تطوعية</b><span class="d">خطوة بخطوة، وجاهز للطباعة أو PDF</span></span>
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
+    </button>
+    <button class="hcard amber" id="homeCert" type="button">
+      <span class="hi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/></svg></span>
+      <span><b>شهادة شكر وتقدير</b><span class="d">لطالب أو طالبة شارك في عمل تطوعي</span></span>
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
+    </button>
+    <button class="home-adv" id="homeAdv" type="button">فتح النموذج الكامل</button>
+  </section>
+
+  <div id="classicForm" hidden>
   <section class="card no-print">
     <h2><span class="dot"></span> اختيار الفرصة</h2>
     <div class="field">
@@ -652,6 +751,7 @@
     <button class="primary" id="buildBtn" disabled>إنشاء التقرير</button>
     <button class="ghost" id="resetBtn">تفريغ الحقول</button>
   </div>
+  </div>
 
   <section id="report">
     <div class="report-card" id="mainPage">
@@ -742,6 +842,7 @@
   <div class="btn-row no-print" id="afterBuildRow" style="display:none;">
     <button class="primary" id="printBtn">🖨 طباعة / حفظ PDF</button>
     <button class="ghost" id="editBtn">تعديل البيانات</button>
+    <button class="ghost" id="homeBtn">الرئيسية</button>
   </div>
   <div class="no-print print-help" id="printHelp" style="display:none;">
     الطباعة غير مدعومة داخل هذا المتصفح المدمج (مثل نافذة ChatGPT). انسخ الرابط وافتحه في Safari أو Chrome ثم اضغط «طباعة / حفظ PDF».
@@ -767,28 +868,20 @@
     </div>
   </div>
 </div>
-<button class="wz-fab no-print" id="wzFab" type="button" aria-label="جولة تفاعلية"><b>＋</b> جولة تفاعلية</button>
-<div class="wz-dim no-print" id="wzMenu" hidden>
-  <div class="wz-sheet" role="dialog" aria-label="جولة تفاعلية">
-    <h4>جولة تفاعلية</h4>
-    <button class="wz-opt p" id="wzStart" type="button"><span>📝</span><span>إنشاء تقرير خطوة بخطوة<small>بلاطة لكل سؤال، بدون صفحة طويلة</small></span></button>
-    <button class="wz-opt p" id="wzCert" type="button"><span>🏅</span><span>شهادة شكر وتقدير<small>للطالب أو الطالبة المشارك في عمل تطوعي</small></span></button>
-    <button class="wz-opt" id="wzMenuClose" type="button"><span>✕</span><span>إغلاق</span></button>
-  </div>
-</div>
 <div class="wz no-print" id="wz" hidden>
   <div class="wz-top">
     <div class="wz-bar"><i id="wzBar"></i></div>
     <div class="wz-step"><span id="wzCnt"></span><button type="button" id="wzClose" aria-label="إغلاق">✕</button></div>
   </div>
   <div class="wz-body"><div class="wz-tile"><h3 id="wzTitle"></h3><p id="wzHint"></p><div id="wzSlot"></div></div></div>
+  <div class="wz-why" id="wzWhy" aria-live="polite"></div>
   <div class="wz-nav"><button type="button" id="wzPrev">› السابق</button><button type="button" id="wzNext">التالي ‹</button></div>
 </div>
 <script>
 // ---------- interactive wizard: one tile per question, reusing the real form fields ----------
 (function(){
   const $ = id => document.getElementById(id);
-  const fab = $('wzFab'), menu = $('wzMenu'), wz = $('wz'), slot = $('wzSlot'), next = $('wzNext'), prev = $('wzPrev');
+  const wz = $('wz'), slot = $('wzSlot'), next = $('wzNext'), prev = $('wzPrev');
   const f = id => $(id).closest('.field');
   const esc = t => String(t == null ? '' : t).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 
@@ -922,22 +1015,142 @@
   }
 
   // ===== wizard steps =====
-  const state = {gender:'', studentName:'', noteEl:null, orient:'landscape'};
+  const state = {gender:'', studentName:'', noteEl:null, orient:'landscape', oppCat:''};
   const isG = () => state.gender === 'g';
+  let curSync = null;
+
+  // small outline icons for the tiles
+  const IC = {
+    users: '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
+    mic: '<path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/>',
+    shield: '<path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/>',
+    book: '<path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>',
+    flag: '<path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" x2="4" y1="22" y2="15"/>',
+    sprout: '<path d="M7 20h10"/><path d="M10 20c5.5-2.5.8-6.4 3-10"/><path d="M9.5 9.4c1.1.8 1.8 2.2 2.3 3.7-2 .4-3.5.4-4.8-.3-1.2-.6-2.3-1.9-3-4.2 2.8-.5 4.4 0 5.5.8z"/><path d="M14.1 6a7 7 0 0 0-1.1 4c1.9-.1 3.3-.6 4.3-1.4 1-1 1.6-2.3 1.7-4.6-2.7.1-4 1-4.9 2z"/>',
+    medic: '<path d="M12 11v4"/><path d="M14 13h-4"/><path d="M16 6V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><path d="M18 6v14"/><path d="M6 6v14"/><rect width="20" height="14" x="2" y="6" rx="2"/>',
+    monitor: '<rect width="20" height="14" x="2" y="3" rx="2"/><line x1="8" x2="16" y1="21" y2="21"/><line x1="12" x2="12" y1="17" y2="21"/>',
+    heart: '<path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>',
+    plus: '<path d="M5 12h14"/><path d="M12 5v14"/>',
+    user: '<path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>'
+  };
+  const svg = k => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + IC[k] + '</svg>';
+  function oppIcon(n){
+    if(/إذاعة/.test(n)) return 'mic';
+    if(/أمن|سلامة|السلامة/.test(n)) return 'shield';
+    if(/إسعاف|المسعف|صحة|صحتك|ماء/.test(n)) return 'medic';
+    if(/أشجار|خضراء|بيئ|تدوير|ترشّد/.test(n)) return 'sprout';
+    if(/احتفاء|وطني|تأسيس|العلم|الحفل/.test(n)) return 'flag';
+    if(/مكتب|كتاب|المعرفة|الأقران|يساند|المعلم|المختبر/.test(n)) return 'book';
+    if(/حاسب|رقمي|أرشيف|تقرير|تصميم|توثّق|صوت التطوع/.test(n)) return 'monitor';
+    if(/طابور|فسحة|المقصف|نشاط|منظم|تنظيم|فريق|الدوري|أهلًا|رفقاء|تستعد/.test(n)) return 'users';
+    return 'heart';
+  }
+  const CAT_LABEL = {'فرصي':'فرصي', 'أساسية':'الأساسية', 'إضافية':'الإضافية', 'رسمية':'الرسمية', 'مقترحة':'المقترحة'};
+
+  // opportunity picker: category chips, search, and a tile per opportunity (drives the same hidden <select>)
+  function buildOppTiles(){
+    const selEl = $('oppSelect');
+    const w = document.createElement('div');
+    const cats = ['أساسية', 'إضافية', 'رسمية', 'مقترحة'];
+    if(OPPS.some(o => o.cat === 'فرصي')) cats.unshift('فرصي');
+    const curCat = selEl.value && selEl.value.indexOf('|') > 0 ? selEl.value.split('|')[0] : '';
+    let cat = cats.includes(curCat) ? curCat : (cats.includes(state.oppCat) ? state.oppCat : 'أساسية');
+    let q = '', first = true;
+
+    const chips = document.createElement('div'); chips.className = 'wz-chips';
+    const search = document.createElement('input'); search.type = 'text'; search.className = 'wz-search'; search.placeholder = 'ابحث عن فرصة'; search.setAttribute('autocomplete', 'off');
+    const grid = document.createElement('div');
+    const cbox = document.createElement('div'); cbox.className = 'field';
+    cbox.innerHTML = '<label>اسم الفرصة</label><input type="text" placeholder="مثال: مسؤول لوحة الإعلانات" autocomplete="off">';
+    const cin = cbox.querySelector('input'); cin.value = $('customName').value;
+    cbox.hidden = selEl.value !== 'OTHER';
+    cin.addEventListener('input', () => { $('customName').value = cin.value; $('customName').dispatchEvent(new Event('input')); refresh(); });
+
+    function markOn(btn){ grid.querySelectorAll('.wz-t').forEach(x => x.classList.toggle('on', x === btn)); }
+    function choose(value, btn){
+      selEl.value = value; selEl.dispatchEvent(new Event('change'));
+      markOn(btn); cbox.hidden = value !== 'OTHER';
+      if(value === 'OTHER') setTimeout(() => cin.focus(), 50);
+      refresh();
+    }
+    function drawChips(){
+      chips.innerHTML = '';
+      cats.forEach(c => {
+        const b = document.createElement('button'); b.type = 'button'; b.className = 'wz-chip' + (c === cat && !q.trim() ? ' on' : ''); b.textContent = CAT_LABEL[c];
+        b.addEventListener('click', () => { cat = c; state.oppCat = c; q = ''; search.value = ''; drawChips(); draw(); });
+        chips.appendChild(b);
+      });
+    }
+    function draw(){
+      grid.className = 'wz-tiles' + (first ? '' : ' noanim'); first = false;
+      grid.innerHTML = '';
+      const term = q.trim();
+      const list = OPPS.filter(o => term ? (o.name.indexOf(term) > -1 || (o.desc || '').indexOf(term) > -1) : o.cat === cat);
+      list.forEach((o, i) => {
+        const b = document.createElement('button'); b.type = 'button'; b.className = 'wz-t'; b.style.setProperty('--d', Math.min(i, 10) * 35 + 'ms');
+        const key = o.cat + '|' + o.name;
+        b.innerHTML = '<span class="ti">' + svg(oppIcon(o.name)) + '</span><span>' + esc(o.name) + '</span>' +
+          (o.level ? '<span class="lv">' + esc(o.level) + '</span>' : '') + (o.days ? '<small>' + esc(o.days) + '</small>' : '');
+        if(selEl.value === key) b.classList.add('on');
+        b.addEventListener('click', () => choose(key, b));
+        grid.appendChild(b);
+      });
+      if(!list.length) grid.innerHTML = '<div class="wz-empty">لا توجد فرص مطابقة</div>';
+      const ob = document.createElement('button'); ob.type = 'button'; ob.className = 'wz-t wide' + (selEl.value === 'OTHER' ? ' on' : '');
+      ob.innerHTML = '<span class="ti">' + svg('plus') + '</span><span>أخرى — اكتب اسم الفرصة بنفسك</span>';
+      ob.addEventListener('click', () => choose('OTHER', ob));
+      grid.appendChild(ob);
+    }
+    search.addEventListener('input', () => { q = search.value; drawChips(); draw(); });
+    drawChips(); draw();
+    w.append(chips, search, grid, cbox);
+    return w;
+  }
+  // level (عام / مهاري) as two tiles instead of a text box
+  function buildLevelTiles(){
+    const w = document.createElement('div'); w.className = 'field';
+    w.innerHTML = '<label>مستوى التطوع</label>';
+    const row = document.createElement('div'); row.className = 'wz-pick'; row.style.marginBottom = '4px';
+    const lv = $('oppLevel');
+    ['عام', 'مهاري'].forEach(l => {
+      const b = document.createElement('button'); b.type = 'button'; b.textContent = l; b.style.padding = '14px 8px';
+      b.addEventListener('click', () => { lv.value = l; lv.dispatchEvent(new Event('input')); sync(); });
+      row.appendChild(b);
+    });
+    function sync(){ row.querySelectorAll('button').forEach(b => b.classList.toggle('on', b.textContent === lv.value.trim())); }
+    curSync = sync; sync();
+    w.appendChild(row);
+    return w;
+  }
+  // volunteers count: quick tiles above the number box
+  function buildVolTiles(){
+    const w = document.createElement('div'); w.className = 'wz-quick';
+    const vc = $('volCount');
+    [5, 10, 15, 20, 25, 30].forEach(n => {
+      const b = document.createElement('button'); b.type = 'button'; b.textContent = n;
+      b.addEventListener('click', () => { vc.value = n; vc.dispatchEvent(new Event('input')); sync(); });
+      w.appendChild(b);
+    });
+    function sync(){ w.querySelectorAll('button').forEach(b => b.classList.toggle('on', b.textContent === vc.value.trim())); }
+    curSync = sync; sync();
+    return w;
+  }
+
   const pickStep = {
     t: () => 'شهادة شكر وتقدير لمن؟', h: () => 'اختر لتتغير الصياغة والألوان تلقائياً.',
     build: () => {
       const w = document.createElement('div'); w.className = 'wz-pick';
-      [['b','👦','طالب','نسخة الأولاد'],['g','👧','طالبة','نسخة البنات']].forEach(([k,ic,l,sm]) => {
+      [['b','طالب','نسخة الأولاد'],['g','طالبة','نسخة البنات']].forEach(([k,l,sm]) => {
         const b = document.createElement('button'); b.type = 'button'; b.className = state.gender === k ? 'on' : '';
-        b.innerHTML = ic + ' ' + l + '<small>' + sm + '</small>';
+        b.innerHTML = svg('user') + l + '<small>' + sm + '</small>';
         b.addEventListener('click', () => { state.gender = k; show(idx + 1); });
         w.appendChild(b);
       });
       return w;
-    }, ok: () => !!state.gender
+    }, ok: () => !!state.gender, why: 'اختر طالب أو طالبة للمتابعة'
   };
   const nameStep = {
+    why: 'اكتب الاسم للمتابعة',
     t: () => isG() ? 'ما اسم الطالبة؟' : 'ما اسم الطالب؟', h: () => 'الاسم كما سيُكتب في الشهادة.',
     build: () => {
       const w = document.createElement('div'); w.className = 'field';
@@ -948,13 +1161,13 @@
       return w;
     }, ok: () => !!state.studentName.trim()
   };
-  const oppStep = {t:'ما الفرصة التطوعية؟', h:'اختر من الفرص الجاهزة لتُعبّأ بياناتها تلقائياً، أو اختر «أخرى» واكتب اسمها.', els:()=>[f('oppSelect'), $('customNameField')], ok:()=>!!getOppName()};
+  const oppStep = {t:'ما الفرصة التطوعية؟', h:'اضغط على بلاطة الفرصة لتُعبّأ بياناتها تلقائياً، أو اختر «أخرى» واكتب اسمها.', build: buildOppTiles, ok:()=>!!getOppName(), why:'اختر فرصة للمتابعة'};
   const REPORT = [
     oppStep,
     {t:'ما اسم مدرستك؟', h:'يُحفظ ولن تكتبه مرة ثانية.', els:()=>[f('schoolName')]},
-    {t:'راجع بيانات الفرصة', h:'عُبّئت تلقائياً، عدّل أي حقل تحتاجه.', els:()=>[$('oppFields')]},
+    {t:'راجع بيانات الفرصة', h:'عُبّئت تلقائياً، عدّل أي حقل تحتاجه.', build: buildLevelTiles, els:()=>[$('oppFields')]},
     {t:'متى نُفّذت الفرصة؟', h:'اختر تاريخ التقرير وتاريخ البداية والنهاية.', els:()=>[f('reportDate'), f('startDate').parentElement]},
-    {t:'كم عدد المتطوعين؟', h:'اكتب العدد بالأرقام.', els:()=>[f('volCount')]},
+    {t:'كم عدد المتطوعين؟', h:'اختر رقماً سريعاً أو اكتبه بالأرقام.', build: buildVolTiles, els:()=>[f('volCount')]},
     {t:'الشواهد', h:'اكتب وصفاً لما تم تنفيذه وأثره، وأضف الصور.', els:()=>[f('evidenceText'), f('evidenceImgs')]},
     {t:'التواقيع', h:'تُحفظ تلقائياً، عدّلها إن لزم.', els:()=>[f('signPrincipal'), f('signCoordinator'), f('signVice')]},
     {t:'اكتملت البيانات', h:'', els:()=>[], done:true, label:'إنشاء التقرير ✓',
@@ -978,7 +1191,8 @@
     moved = [];
   }
   function show(i){
-    restore(); idx = i; const st = STEPS[i];
+    restore(); const dirn = i > idx ? 'in-next' : i < idx ? 'in-prev' : ''; idx = i; const st = STEPS[i];
+    curSync = null;
     $('wzTitle').textContent = val(st, 't'); $('wzHint').textContent = val(st, 'h') || '';
     slot.innerHTML = '';
     if(st.build) slot.appendChild(st.build());
@@ -987,16 +1201,22 @@
     $('wzBar').style.width = (i / (STEPS.length - 1) * 100) + '%';
     prev.disabled = i === 0;
     next.textContent = st.done ? st.label : 'التالي ‹';
+    const tile = wz.querySelector('.wz-tile');
+    tile.classList.remove('in-next', 'in-prev'); void tile.offsetWidth; if(dirn) tile.classList.add(dirn);
     refresh(); wz.querySelector('.wz-body').scrollTop = 0;
   }
-  function refresh(){ const st = STEPS[idx]; next.disabled = st.ok ? !st.ok() : false; }
-  function open(steps){ STEPS = steps; menu.hidden = true; fab.hidden = true; wz.hidden = false; document.body.style.overflow = 'hidden'; show(0); }
-  function close(){ restore(); wz.hidden = true; fab.hidden = false; document.body.style.overflow = ''; }
-  fab.addEventListener('click', () => { menu.hidden = false; });
-  $('wzMenuClose').addEventListener('click', () => { menu.hidden = true; });
-  menu.addEventListener('click', e => { if(e.target === menu) menu.hidden = true; });
-  $('wzStart').addEventListener('click', () => open(REPORT));
-  $('wzCert').addEventListener('click', () => { state.gender = ''; open(CERT); });
+  function refresh(){
+    const st = STEPS[idx], bad = st.ok ? !st.ok() : false;
+    next.disabled = bad;
+    $('wzWhy').textContent = bad ? (st.why || 'أكمل هذه الخطوة للمتابعة') : '';
+    if(curSync) curSync();
+  }
+  function open(steps, start){ STEPS = steps; idx = -1; wz.hidden = false; document.body.style.overflow = 'hidden'; show(start || 0); }
+  function close(){ restore(); wz.hidden = true; document.body.style.overflow = ''; }
+  const fresh = () => { if(window.vwFresh) window.vwFresh(); };
+  $('homeReport').addEventListener('click', () => { fresh(); open(REPORT); });
+  $('homeCert').addEventListener('click', () => { fresh(); state.gender = ''; state.studentName = ''; open(CERT); });
+  window.vwWizard = { report: i => open(REPORT, i) };
   $('wzClose').addEventListener('click', close);
   prev.addEventListener('click', () => idx > 0 && show(idx - 1));
   next.addEventListener('click', () => { const st = STEPS[idx]; st.done ? st.action() : show(idx + 1); });
@@ -1231,6 +1451,11 @@ sel.addEventListener('change', ()=>{
 if(window.__addedOppName){
   sel.value = "فرصي|" + window.__addedOppName;
   if(sel.value) sel.dispatchEvent(new Event('change'));
+  window.__keepSel = !!sel.value; // the first report started from home keeps this opportunity
+}
+if(addedMsg){
+  const hn = document.getElementById('homeNotice');
+  hn.textContent = addedMsg; hn.hidden = false;
 }
 
 function getOppName(){
@@ -1513,14 +1738,39 @@ document.getElementById('copyLinkBtn').addEventListener('click', async ()=>{
     else prompt('انسخ الرابط وافتحه في Safari:', location.href);
   }
 });
+// ---------- home screen: show/hide, advanced form, fresh start ----------
+const homeEl = document.getElementById('home');
+const classicForm = document.getElementById('classicForm');
+const homeAdv = document.getElementById('homeAdv');
+homeAdv.addEventListener('click', ()=>{
+  classicForm.hidden = !classicForm.hidden;
+  homeAdv.textContent = classicForm.hidden ? 'فتح النموذج الكامل' : 'إخفاء النموذج الكامل';
+});
+// hide the home tiles while a finished report is shown
+document.getElementById('buildBtn').addEventListener('click', ()=>{
+  if(!getOppName()) return;
+  homeEl.hidden = true;
+  countUp(document.getElementById('rVol'));
+});
+function showHome(){
+  reportSection.style.display = "none";
+  afterBuildRow.style.display = "none";
+  homeEl.hidden = false;
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+document.getElementById('homeBtn').addEventListener('click', showHome);
 document.getElementById('editBtn').addEventListener('click', ()=>{
   reportSection.style.display = "none";
   afterBuildRow.style.display = "none";
-  window.scrollTo({top:0, behavior:'smooth'});
+  homeEl.hidden = false;
+  if(classicForm.hidden && window.vwWizard) window.vwWizard.report(2); // back to the data review tile
+  else window.scrollTo({top:0, behavior:'smooth'});
 });
-document.getElementById('resetBtn').addEventListener('click', ()=>{
+function resetFields(){
   sel.value = "";
   document.getElementById('customName').value = "";
+  customNameField.style.display = "none";
+  delOppBtn.style.display = "none";
   showFieldsUI(false);
   fillEditableFields(null);
   document.getElementById('volCount').value = "";
@@ -1532,10 +1782,46 @@ document.getElementById('resetBtn').addEventListener('click', ()=>{
   updateBuildBtn();
   const d = new Date();
   reportDateInput.value = d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0");
+}
+// a new report/certificate started from the home tiles begins empty (school and signatures are remembered)
+window.vwFresh = function(){
+  if(window.__keepSel){ window.__keepSel = false; return; }
+  resetFields();
+};
+document.getElementById('resetBtn').addEventListener('click', ()=>{
+  resetFields();
   reportSection.style.display = "none";
   afterBuildRow.style.display = "none";
   window.scrollTo({top:0, behavior:'smooth'});
 });
+
+// ---------- motion: number count-up, scroll reveal, shrinking header (screen only) ----------
+const reduceMotion = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+function countUp(el){
+  const t = el.textContent.trim();
+  if(reduceMotion || !/^\d+$/.test(t) || Number(t) < 2) return;
+  const n = Number(t), t0 = performance.now(), D = 700;
+  el.dataset.final = t;
+  (function step(now){
+    const p = Math.min(1, (now - t0) / D);
+    el.textContent = p < 1 ? Math.round(n * (1 - Math.pow(1 - p, 3))) : t;
+    if(p < 1) requestAnimationFrame(step);
+  })(t0);
+}
+window.addEventListener('beforeprint', ()=>{ const e = document.getElementById('rVol'); if(e.dataset.final) e.textContent = e.dataset.final; });
+(function motion(){
+  const io = 'IntersectionObserver' in window ? new IntersectionObserver(es=>{
+    es.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); } });
+  }, {threshold: .1}) : null;
+  document.querySelectorAll('.home-lead, .hcard, .home-adv, #classicForm .card').forEach((el, i)=>{
+    el.classList.add('reveal');
+    el.style.setProperty('--d', (i % 4) * 90 + 'ms');
+    if(io) io.observe(el); else el.classList.add('in');
+  });
+  const hdr = document.querySelector('header.top');
+  const onScroll = ()=> hdr.classList.toggle('scrolled', window.scrollY > 24);
+  window.addEventListener('scroll', onScroll, {passive:true}); onScroll();
+})();
 </script>
 </body>
 </html>
