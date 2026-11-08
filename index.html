@@ -419,11 +419,21 @@
   #report.theme-moe .report-body { padding: 0 28px 8px; }
 
   #report.theme-moe .info-grid, #report.theme-moe .period-row {
-    gap: 1.5px; background: var(--mline); border: 1.5px solid var(--mline); overflow: hidden;
+    gap: 0; background: transparent; border: 1.5px solid var(--mline); overflow: hidden;
   }
-  #report.theme-moe .info-grid { margin: 0; border-radius: 8px 8px 0 0; }
-  #report.theme-moe .period-row { margin: -1.5px 0 18px; border-radius: 0 0 8px 8px; }
+  #report.theme-moe .info-grid { margin: 0; border-bottom: 0; border-radius: 8px 8px 0 0; }
+  #report.theme-moe .period-row { margin: 0 0 18px; border-radius: 0 0 8px 8px; }
   #report.theme-moe .info-card { display: block; border: 0; border-radius: 0; background: #f3f8fc; padding: 10px 16px 12px; }
+  /* cell dividers are real borders (same width/color as the boxes), not grid gaps */
+  #report.theme-moe .info-grid .info-card:not(:nth-child(3n+1)) { border-inline-start: 1.5px solid var(--mline); }
+  #report.theme-moe .info-grid .info-card:nth-child(n+4) { border-top: 1.5px solid var(--mline); }
+  #report.theme-moe .period-row .info-card + .info-card { border-inline-start: 1.5px solid var(--mline); }
+  @media screen and (max-width: 480px) {
+    #report.theme-moe .info-grid .info-card:not(:nth-child(3n+1)) { border-inline-start: 0; }
+    #report.theme-moe .info-grid .info-card:nth-child(even) { border-inline-start: 1.5px solid var(--mline); }
+    #report.theme-moe .info-grid .info-card:nth-child(n+4) { border-top: 0; }
+    #report.theme-moe .info-grid .info-card:nth-child(n+3) { border-top: 1.5px solid var(--mline); }
+  }
   #report.theme-moe .info-icon { display: none; }
   #report.theme-moe .info-card > div { display: flex; flex-direction: column-reverse; gap: 6px; }
   #report.theme-moe .info-lbl { font-size: .72rem; color: var(--mmut); }
