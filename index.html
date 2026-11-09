@@ -607,6 +607,12 @@
   .wz-t.row.on { background: var(--green-pale); }
   .wz-t.row:active { transform: none; background: var(--green-pale); }
   .wz-t.row small { white-space: nowrap; }
+  .wz-t.sw { touch-action: pan-y; user-select: none; -webkit-user-select: none; }
+  .wz-t.sw.drag { transition: none; animation: none; }
+  .wz-t.sw.del { background: #fde8e6; border-color: #c0392b; color: #c0392b; }
+  .wz-t.sw.del .ti { background: #c0392b; color: #fff; }
+  .wz-t.sw.out { transition: transform .18s ease, opacity .18s ease; opacity: 0; animation: none; }
+  .wz-hint { margin: 0 0 8px; font-size: .78rem; color: var(--ink-soft); }
   .wz-t.row .ok { width: 18px; height: 18px; color: var(--green-deep); }
   .wz-sr { display: flex; gap: 8px; margin-bottom: 10px; }
   .wz-sr .wz-search { margin: 0; flex: 1; min-width: 0; }
@@ -674,6 +680,27 @@
   .wz-bar i { background: linear-gradient(90deg, #3B83B7, #4CB176); }
   .wz-ok .c { background: var(--green-bright); }
   .hcard.amber .hi { background: #f5f1e6; color: #7d6d3f; }
+  .hcard.ai .hi { background: var(--purple-pale); color: var(--purple); }
+  .ai-prompt { width: 100%; min-height: 210px; font-size: .8rem; line-height: 1.7; direction: rtl; }
+  .ai-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 10px 0 4px; }
+  .ai-btns .full { grid-column: 1 / -1; }
+  .ai-btns button { padding: 12px 8px; }
+  .ai-msg { min-height: 1.4em; margin-top: 6px; font-size: .8rem; color: var(--green-bright); font-weight: 600; }
+  .wz-pick.col1 { grid-template-columns: 1fr; }
+  .ai-cust { margin-top: 10px; padding: 14px 12px; border: 2px solid var(--line); border-radius: 14px; background: var(--paper); }
+  .ai-cust.on { border-color: var(--green); background: var(--green-pale); }
+  .ai-cust h4 { margin: 0 0 12px; text-align: center; font: 700 1.05rem var(--font-head); }
+  .ai-cust .row { display: flex; gap: 12px; }
+  .ai-cust .col { flex: 1; text-align: center; }
+  .ai-cust .col > span { display: block; margin-bottom: 8px; font: 600 .8rem var(--font-body); color: var(--ink-soft); }
+  .ai-cust .ctl { display: flex; align-items: center; justify-content: center; gap: 12px; }
+  .ai-cust .ctl button { width: 40px; height: 40px; padding: 0; border-radius: 50%; border: 1.5px solid var(--line); background: #fff; color: var(--green-deep); font: 700 1.4rem var(--font-head); line-height: 1; cursor: pointer; }
+  .ai-cust .ctl button:active { transform: scale(.92); }
+  .ai-cust .ctl b { min-width: 30px; text-align: center; font: 700 1.7rem var(--font-head); }
+  .ai-cust .tot { margin-top: 12px; text-align: center; padding: 8px; border-radius: 10px; background: var(--green-pale); color: var(--green-deep); font: 600 .85rem var(--font-body); }
+  .ai-cust.on .tot { background: #fff; }
+  .wz-pick.col3 { grid-template-columns: 1fr 1fr 1fr; }
+  .wz-pick.col1 button, .wz-pick.col3 button { padding: 14px 8px; }
   .school-card { display: flex; align-items: center; gap: 12px; width: 100%; text-align: right; padding: 11px 14px; margin-bottom: 14px; border: 1.5px solid var(--green); border-radius: 16px; background: var(--green-pale); color: var(--ink); font-family: var(--font-body); cursor: pointer; transition: transform .15s ease; }
   .school-card:active { transform: scale(.98); }
   .school-card .sc-i { width: 38px; height: 38px; border-radius: 11px; flex: none; display: grid; place-items: center; background: var(--green-deep); color: #fff; }
@@ -725,7 +752,11 @@
       <span><b>شهادة شكر وتقدير</b><span class="d">لطالب أو طالبة شارك في عمل تطوعي</span></span>
       <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
     </button>
-    <button class="home-adv" id="homeAdv" type="button">فتح النموذج الكامل</button>
+    <button class="hcard ai" id="homeAi" type="button">
+      <span class="hi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/></svg></span>
+      <span><b>مساعدة الذكاء الصناعي</b><span class="d">أمر جاهز يكتب لك فرصة تطوعية في ChatGPT أو Gemini أو Claude</span></span>
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
+    </button>
   </section>
 
   <div id="classicForm" hidden>
@@ -1112,6 +1143,7 @@
     medic: '<path d="M12 11v4"/><path d="M14 13h-4"/><path d="M16 6V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><path d="M18 6v14"/><path d="M6 6v14"/><rect width="20" height="14" x="2" y="6" rx="2"/>',
     monitor: '<rect width="20" height="14" x="2" y="3" rx="2"/><line x1="8" x2="16" y1="21" y2="21"/><line x1="12" x2="12" y1="17" y2="21"/>',
     heart: '<path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>',
+    sparkle: '<path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/>',
     plus: '<path d="M5 12h14"/><path d="M12 5v14"/>',
     user: '<path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>',
     building: '<path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/>'
@@ -1154,6 +1186,37 @@
     cbox.hidden = selEl.value !== 'OTHER';
     cin.addEventListener('input', () => { $('customName').value = cin.value; $('customName').dispatchEvent(new Event('input')); refresh(); });
 
+    // swipe a «فرصي» row right or left to delete it (asks first; a short drag just snaps back)
+    function swipeDel(b, name){
+      b.classList.add('sw');
+      let x0 = 0, y0 = 0, dx = 0, on = false, horiz = false;
+      b.addEventListener('pointerdown', e => { if(e.pointerType === 'mouse' && e.button !== 0) return; x0 = e.clientX; y0 = e.clientY; dx = 0; on = true; horiz = false; b.__dragged = false; });
+      b.addEventListener('pointermove', e => {
+        if(!on) return;
+        const mx = e.clientX - x0, my = e.clientY - y0;
+        if(!horiz){ if(Math.abs(mx) > 10 && Math.abs(mx) > Math.abs(my) * 1.5){ horiz = true; b.classList.add('drag'); try{ b.setPointerCapture(e.pointerId); }catch(_){} } else return; }
+        dx = mx; b.__dragged = true;
+        b.style.transform = 'translateX(' + dx + 'px)';
+        b.classList.toggle('del', Math.abs(dx) > 90);
+      });
+      function end(){
+        if(!on) return; on = false;
+        b.classList.remove('drag');
+        if(!horiz){ return; }
+        if(Math.abs(dx) > 90){
+          b.classList.add('out'); b.style.transform = 'translateX(' + (dx > 0 ? 110 : -110) + '%)';
+          setTimeout(() => {
+            if(confirm('حذف الفرصة «' + name + '» من قائمتك؟')){
+              deleteCustomOpp(name);
+              if(!OPPS.some(o => o.cat === 'فرصي')){ const k = cats.indexOf('فرصي'); if(k > -1) cats.splice(k, 1); if(cat === 'فرصي'){ cat = ''; state.oppCat = ''; } }
+              drawChips(); draw(); refresh();
+            } else { b.classList.remove('out', 'del'); b.style.transform = ''; }
+          }, 190);
+        } else { b.classList.remove('del'); b.style.transform = ''; }
+        setTimeout(() => { b.__dragged = false; }, 50);
+      }
+      b.addEventListener('pointerup', end); b.addEventListener('pointercancel', end);
+    }
     function markOn(btn){ grid.querySelectorAll('.wz-t').forEach(x => x.classList.toggle('on', x === btn)); }
     function choose(value, btn){
       selEl.value = value; selEl.dispatchEvent(new Event('change'));
@@ -1174,13 +1237,15 @@
       grid.innerHTML = '';
       const term = q.trim();
       const list = OPPS.filter(o => term ? (o.name.indexOf(term) > -1 || (o.desc || '').indexOf(term) > -1) : (!cat || o.cat === cat));
+      if(list.some(o => o.custom)){ const h = document.createElement('div'); h.className = 'wz-hint'; h.textContent = 'لحذف فرصة من «فرصي» اسحبها يميناً أو يساراً.'; grid.appendChild(h); }
       list.forEach((o, i) => {
         const b = document.createElement('button'); b.type = 'button'; b.className = 'wz-t' + (view === 'list' ? ' row' : ''); b.style.setProperty('--d', Math.min(i, 10) * 35 + 'ms');
         const key = o.cat + '|' + o.name;
         b.innerHTML = '<span class="ti">' + svg(oppIcon(o.name)) + '</span><span>' + esc(o.name) + '</span>' +
           (view === 'list' ? '' : (o.level ? '<span class="lv">' + esc(o.level) + '</span>' : '')) + (o.days ? '<small>' + esc(o.days) + '</small>' : '');
         if(selEl.value === key) b.classList.add('on');
-        b.addEventListener('click', () => choose(key, b));
+        if(o.custom) swipeDel(b, o.name);
+        b.addEventListener('click', () => { if(b.__dragged){ b.__dragged = false; return; } choose(key, b); });
         grid.appendChild(b);
       });
       if(!list.length) grid.innerHTML = '<div class="wz-empty">لا توجد فرص مطابقة</div>';
@@ -1268,6 +1333,158 @@
     {t:'الشهادة جاهزة', h:'راجعها ثم اطبعها أو احفظها PDF.', els:()=>[], done:true, label:'🖨 طباعة / حفظ PDF', build:previewNode,
       action:()=>{ if(state.noteEl) state.noteEl.hidden = true; printCert(v => { if(state.noteEl) state.noteEl.hidden = !v; }); }}
   ];
+
+  // ===== AI helper tile: build a prompt for ChatGPT / Gemini / Claude, then import the reply into "فرصي" =====
+  const AIDUR = [
+    {days:'5 أيام', hours:'ساعة يومياً', a:'5 أيام', b:'ساعة يومياً', sm:'الأشيع في البنك'},
+    {days:'يوم واحد', hours:'5 ساعات', a:'يوم واحد', b:'5 ساعات', sm:'للفعاليات'},
+    {days:'يوم واحد', hours:'حصة واحدة', a:'يوم واحد', b:'حصة واحدة', sm:'مبادرة قصيرة'},
+    {days:'5 أيام (عن بعد)', hours:'25 ساعة بالمجموع', remote:true, a:'5 أيام', b:'25 ساعة', sm:'بالمجموع — عن بعد'}
+  ];
+  const daysText = n => n === 1 ? 'يوم واحد' : n === 2 ? 'يومان' : n <= 10 ? n + ' أيام' : n + ' يوماً';
+  const hrsText = n => n === 1 ? 'ساعة يومياً' : n === 2 ? 'ساعتان يومياً' : n + ' ساعات يومياً';
+  const aiDur = () => AIST.dur < AIDUR.length ? AIDUR[AIST.dur] : {days:daysText(AIST.cd), hours:hrsText(AIST.ch)};
+  const AIST = {idea:'', dur:0, cd:3, ch:2, level:'عام', reply:''};
+  function aiPrompt(){
+    const d = aiDur();
+    const ex = ['تنظيم الطابور الصباحي', 'مدرستي ترشّد'].map(n => OPPS.find(o => o.name === n && o.cat !== 'فرصي')).filter(Boolean)
+      .map(o => JSON.stringify({name:o.name, level:o.level, desc:o.desc, skills:o.skills, tasks:o.tasks, days:o.days, hours:o.hours}, null, 1)).join('\n\n');
+    return [
+      'أنت كاتب فرص تطوعية لطلاب المدارس في السعودية ضمن «بنك الفرص التطوعية المدرسية» (وزارة التعليم).',
+      '',
+      'اكتب فرصة تطوعية عن هذه الفكرة: «' + AIST.idea.trim() + '»',
+      'المستوى: ' + AIST.level + '.',
+      'المدة: ' + d.days + '، ' + d.hours + ' (استخدم هاتين القيمتين كما هما في days وhours).',
+      d.remote ? 'الفرصة تُنفَّذ عن بعد (عبر الإنترنت)، فاجعل مهامها قابلة للتنفيذ عن بعد وتحت إشراف المعلم.' : null,
+      '',
+      'قواعد الأسلوب (مثل فرص البنك تماماً):',
+      '- اسم الفرصة قصير من 2 إلى 5 كلمات، مثل «تنظيم …» أو «مساعد …» أو «سفير …».',
+      '- الوصف جملة واحدة واضحة تبدأ بفعل مصدر مثل: المساهمة، المساعدة، تعزيز، دعم.',
+      '- المهارات من 2 إلى 3، وكل مهارة كلمتان أو ثلاث.',
+      '- المهام من 3 إلى 4، كل مهمة جملة قصيرة تنتهي بنقطة، والأولى غالباً التواصل واستلام المهام من مشرف الفرصة.',
+      '- كل المهام آمنة وداخل المدرسة وتحت إشراف المعلمين، دون تصوير الطلاب أو جمع أموال أو أي عمل خطر.',
+      '- عربية فصحى مختصرة بلا حشو ولا مبالغة.',
+      '',
+      'أمثلة من البنك:',
+      ex,
+      '',
+      'شكل الإخراج: أعد كتلة JSON واحدة فقط بلا أي شرح قبلها أو بعدها، بالمفاتيح: name, level, desc, skills, tasks, days, hours.'
+    ].filter(x => x !== null).join('\n');
+  }
+  // Lenient reader: replies copied out of chat apps often arrive with escaped brackets (\[ \]), smart quotes,
+  // hidden direction marks, a missing { }, or stray quotes, so strict JSON.parse alone is not enough.
+  function aiParse(t){
+    t = (t || '').trim(); if(!t) return null;
+    const m = t.match(/[?&]add=([A-Za-z0-9_\-=]+)/); if(m) return {link:m[1]};
+    t = t.replace(/[​-‏‪-‮⁦-⁩﻿]/g, '').replace(/[“”„«»]/g, '"')
+         .replace(/\\([\[\]{}_"*#])/g, '$1').replace(/```(?:json)?/gi, '');
+    const ok = o => o && typeof o.name === 'string' && o.name.trim() ? {opp:o} : null;
+    const a = t.indexOf('{'), b = t.lastIndexOf('}');
+    if(a > -1 && b > a){ try{ const r = ok(JSON.parse(t.slice(a, b + 1))); if(r) return r; }catch(e){} }
+    // fallback: pull each field out with regexes, whatever the surrounding junk is
+    const str = k => { const x = t.match(new RegExp('"' + k + '"\\s*:\\s*"((?:[^"\\\\]|\\\\.)*)"')); return x ? x[1].replace(/\\"/g, '"') : ''; };
+    const arr = k => { const x = t.match(new RegExp('"' + k + '"\\s*:\\s*\\[([\\s\\S]*?)\\]')); return x ? (x[1].match(/"((?:[^"\\\\]|\\\\.)*)"/g) || []).map(v => v.slice(1, -1).replace(/\\"/g, '"')) : []; };
+    return ok({name:str('name'), level:str('level'), desc:str('desc'), skills:arr('skills'), tasks:arr('tasks'), days:str('days'), hours:str('hours')});
+  }
+  function aiImport(){
+    const r = aiParse(AIST.reply); if(!r) return;
+    let b64 = r.link;
+    if(!b64){
+      const d = aiDur(), o = cleanOpp(r.opp); if(!o) return;
+      if(AIST.level) o.level = AIST.level;
+      if(o.level !== 'مهاري') o.level = 'عام';
+      o.days = d.days; o.hours = d.hours;
+      const bytes = new TextEncoder().encode(JSON.stringify({name:o.name, level:o.level, desc:o.desc, skills:o.skills, tasks:o.tasks, days:o.days, hours:o.hours}));
+      let bin = ''; bytes.forEach(c => bin += String.fromCharCode(c));
+      b64 = btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    }
+    location.href = location.pathname + '?add=' + b64; // the page imports it into «فرصي» and selects it
+  }
+  function aiCopy(text){
+    return (navigator.clipboard && navigator.clipboard.writeText ? navigator.clipboard.writeText(text) : Promise.reject()).catch(() => {
+      const ta = document.createElement('textarea'); ta.value = text; ta.style.cssText = 'position:fixed;opacity:0'; document.body.appendChild(ta); ta.select();
+      try{ document.execCommand('copy'); }catch(e){} ta.remove();
+    });
+  }
+  function aiChoice(opts, get, set, cls){
+    const w = document.createElement('div'); w.className = 'wz-pick ' + cls;
+    opts.forEach(([v, l, sm]) => {
+      const b = document.createElement('button'); b.type = 'button'; b.dataset.v = v; b.innerHTML = l + (sm ? '<small>' + sm + '</small>' : '');
+      b.addEventListener('click', () => { set(v); sync(); });
+      w.appendChild(b);
+    });
+    function sync(){ w.querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.v === String(get()))); }
+    curSync = sync; sync();
+    return w;
+  }
+  const AI = [
+    {t:'ما فكرة الفرصة؟', h:'اكتبها بكلمات بسيطة، والذكاء الصناعي يصوغها بأسلوب فرص البنك.', why:'اكتب فكرة الفرصة للمتابعة', ok:() => !!AIST.idea.trim(),
+      build:() => {
+        const w = document.createElement('div'); w.className = 'field';
+        w.innerHTML = '<label for="aiIdea">الفكرة</label><textarea id="aiIdea" placeholder="مثال: متطوعون يرتبون رفوف المكتبة ويصنفون الكتب"></textarea>';
+        const i = w.querySelector('textarea'); i.value = AIST.idea;
+        i.addEventListener('input', () => { AIST.idea = i.value; });
+        setTimeout(() => i.focus(), 50);
+        return w;
+      }},
+    {t:'كم مدة الفرصة؟', h:'اختر مدة جاهزة، أو حدّد الأيام والساعات بنفسك.',
+      build:() => {
+        const w = document.createElement('div'), grid = document.createElement('div'); grid.className = 'wz-pick';
+        AIDUR.forEach((d, i) => {
+          const b = document.createElement('button'); b.type = 'button'; b.dataset.v = i; b.style.padding = '16px 6px';
+          b.innerHTML = '<b style="display:block;font:700 1.15rem var(--font-head)">' + d.a + '</b><b style="display:block;font:700 .85rem var(--font-head);margin-top:4px">' + d.b + '</b><small>' + d.sm + '</small>';
+          b.addEventListener('click', () => { AIST.dur = i; sync(); });
+          grid.appendChild(b);
+        });
+        const c = document.createElement('div'); c.className = 'ai-cust';
+        c.innerHTML = '<h4>مدة مخصصة</h4><div class="row">' +
+          [['عدد الأيام', 'cd'], ['ساعات اليوم', 'ch']].map(([l, k]) => '<div class="col"><span>' + l + '</span><div class="ctl"><button type="button" data-k="' + k + '" data-s="1" aria-label="زيادة">+</button><b data-v="' + k + '"></b><button type="button" data-k="' + k + '" data-s="-1" aria-label="إنقاص">−</button></div></div>').join('') +
+          '</div><div class="tot"></div>';
+        const LIM = {cd:[1, 30], ch:[1, 8]};
+        c.addEventListener('click', e => {
+          const bt = e.target.closest('button'); if(bt){ const k = bt.dataset.k; AIST[k] = Math.min(LIM[k][1], Math.max(LIM[k][0], AIST[k] + Number(bt.dataset.s))); }
+          AIST.dur = AIDUR.length; sync();
+        });
+        function sync(){
+          grid.querySelectorAll('button').forEach(b => b.classList.toggle('on', Number(b.dataset.v) === AIST.dur));
+          c.classList.toggle('on', AIST.dur === AIDUR.length);
+          c.querySelector('[data-v=cd]').textContent = AIST.cd; c.querySelector('[data-v=ch]').textContent = AIST.ch;
+          const t = AIST.cd * AIST.ch;
+          c.querySelector('.tot').textContent = (AIST.cd === 1 ? 'يوم واحد' : AIST.cd === 2 ? 'يومان' : AIST.cd + (AIST.cd <= 10 ? ' أيام' : ' يوماً')) + ' × ' + (AIST.ch === 2 ? 'ساعتان' : AIST.ch + (AIST.ch <= 10 ? ' ساعات' : ' ساعة')) + ' = ' + formatHours(t);
+        }
+        curSync = sync; sync();
+        w.append(grid, c);
+        return w;
+      }},
+    {t:'ما مستوى الفرصة؟', h:'«مهاري» إذا احتاجت الفرصة مهارة خاصة كالإلقاء أو التصميم، وإلا فـ«عام».',
+      build:() => aiChoice([['عام', 'عام', ''], ['مهاري', 'مهاري', '']], () => AIST.level, v => { AIST.level = v; }, '')},
+    {t:'أمرك جاهز', h:'انسخه وأرسله لأي ذكاء صناعي، ثم ارجع والصق رده.',
+      build:() => {
+        const w = document.createElement('div'), prompt = aiPrompt();
+        const ta = document.createElement('textarea'); ta.className = 'ai-prompt'; ta.readOnly = true; ta.value = prompt;
+        const msg = document.createElement('div'); msg.className = 'ai-msg';
+        const row = document.createElement('div'); row.className = 'ai-btns';
+        [['نسخ الأمر', null, 'full primary'], ['ChatGPT', 'https://chatgpt.com/?q=', 'ghost'], ['Claude', 'https://claude.ai/new?q=', 'ghost']].forEach(([l, url, c]) => {
+          const b = document.createElement('button'); b.type = 'button'; b.className = c; b.textContent = l;
+          b.addEventListener('click', () => {
+            aiCopy(prompt).then(() => { msg.textContent = url ? 'تم نسخ الأمر. إن لم يظهر في المحادثة فالصقه فيها.' : 'تم نسخ الأمر ✓'; });
+            if(url) window.open(url + (/\?q=$/.test(url) ? encodeURIComponent(prompt) : ''), '_blank', 'noopener');
+          });
+          row.appendChild(b);
+        });
+        w.append(ta, row, msg);
+        return w;
+      }},
+    {t:'الصق رد الذكاء الصناعي', h:'انسخ رد الذكاء الصناعي كما هو والصقه هنا. يعمل مع ChatGPT وGemini وClaude.', done:true, label:'إضافة الفرصة إلى «فرصي» ✓',
+      why:'الصق رد الذكاء الصناعي للمتابعة', ok:() => !!aiParse(AIST.reply), action:aiImport,
+      build:() => {
+        const w = document.createElement('div'); w.className = 'field';
+        w.innerHTML = '<label for="aiReply">رد الذكاء الصناعي</label><textarea id="aiReply" class="ai-prompt" placeholder="الصق هنا…"></textarea>';
+        const i = w.querySelector('textarea'); i.value = AIST.reply;
+        i.addEventListener('input', () => { AIST.reply = i.value; });
+        return w;
+      }}
+  ];
   const SETTINGS = [
     {t:'بيانات المدرسة', h:'تُحفظ على جوالك وتُستخدم في كل التقارير والشهادات، فلا تكتبها مرة ثانية.',
       els:()=>[f('schoolName'), f('signPrincipal'), f('signCoordinator'), f('signVice')],
@@ -1293,8 +1510,8 @@
     prev.disabled = i === 0; prev.style.visibility = st.solo ? 'hidden' : '';
     const chip = $('wzSchool');
     if(chip){
-      chip.hidden = !!st.done;
-      if(!st.done){ const n = $('schoolName').value.trim(); chip.innerHTML = svg('building') + '<span>' + (n ? n.replace(/</g,'&lt;') : 'أضف بيانات مدرستك') + '</span><b>' + (n ? 'تغيير' : 'إضافة') + '</b>'; }
+      chip.hidden = !!st.done || STEPS === AI;
+      if(!chip.hidden){ const n = $('schoolName').value.trim(); chip.innerHTML = svg('building') + '<span>' + (n ? n.replace(/</g,'&lt;') : 'أضف بيانات مدرستك') + '</span><b>' + (n ? 'تغيير' : 'إضافة') + '</b>'; }
     }
     next.textContent = st.done ? st.label : 'التالي ‹';
     const tile = wz.querySelector('.wz-tile');
@@ -1321,6 +1538,7 @@
   };
   $('homeReport').addEventListener('click', () => { fresh(); begin(REPORT); });
   $('homeCert').addEventListener('click', () => { fresh(); state.gender = ''; state.studentName = ''; begin(CERT); });
+  $('homeAi').addEventListener('click', () => { AIST.idea = ''; AIST.dur = 0; AIST.cd = 3; AIST.ch = 2; AIST.level = 'عام'; AIST.reply = ''; open(AI); });
   $('schoolCard').addEventListener('click', () => open(SETTINGS, 0));
   if($('wzSchool')) $('wzSchool').addEventListener('click', () => { const back = STEPS, bi = idx; open(SETTINGS, 0, () => open(back, bi)); });
   window.vwWizard = { report: () => open(REPORT, REPORT.findIndex(x => x.review)) };
@@ -1468,16 +1686,20 @@ delOppBtn.className = 'ghost';
 delOppBtn.textContent = 'حذف هذه الفرصة من قائمتي';
 delOppBtn.style.cssText = 'display:none;margin-top:8px;';
 sel.parentNode.appendChild(delOppBtn);
-delOppBtn.addEventListener('click', ()=>{
-  const [cat, name] = sel.value.split("|");
-  if(cat !== "فرصي" || !confirm('حذف الفرصة «' + name + '» من قائمتك؟')) return;
+// removes one opportunity from «فرصي» (storage, list, dropdown); used by the delete button and by swipe-to-delete
+function deleteCustomOpp(name){
   saveCustomOpps(loadCustomOpps().filter(x=>x.name !== name));
   const i = OPPS.findIndex(x=>x.custom && x.name === name);
   if(i > -1) OPPS.splice(i, 1);
-  Array.from(sel.options).forEach(op=>{ if(op.value === cat+"|"+name) op.remove(); });
+  const key = "فرصي|" + name, wasSel = sel.value === key;
+  Array.from(sel.options).forEach(op=>{ if(op.value === key) op.remove(); });
   sel.querySelectorAll('optgroup').forEach(g=>{ if(!g.children.length) g.remove(); });
-  sel.value = "";
-  sel.dispatchEvent(new Event('change'));
+  if(wasSel){ sel.value = ""; sel.dispatchEvent(new Event('change')); }
+}
+delOppBtn.addEventListener('click', ()=>{
+  const [cat, name] = sel.value.split("|");
+  if(cat !== "فرصي" || !confirm('حذف الفرصة «' + name + '» من قائمتك؟')) return;
+  deleteCustomOpp(name);
 });
 
 const customNameField = document.getElementById('customNameField');
@@ -1525,6 +1747,7 @@ function formatHours(n){
 }
 function totalHoursText(daysText, hoursText){
   if(/حصة/.test(hoursText || "")) return hoursText;
+  if(/مجموع/.test(hoursText || "")){ const n = Number((hoursText.match(/\d+/) || [0])[0]); return n ? formatHours(n) : hoursText; }
   const total = countDays(daysText) * hoursPerDay(hoursText);
   return total ? formatHours(total) : "";
 }
@@ -1848,11 +2071,6 @@ document.getElementById('copyLinkBtn').addEventListener('click', async ()=>{
 // ---------- home screen: show/hide, advanced form, fresh start ----------
 const homeEl = document.getElementById('home');
 const classicForm = document.getElementById('classicForm');
-const homeAdv = document.getElementById('homeAdv');
-homeAdv.addEventListener('click', ()=>{
-  classicForm.hidden = !classicForm.hidden;
-  homeAdv.textContent = classicForm.hidden ? 'فتح النموذج الكامل' : 'إخفاء النموذج الكامل';
-});
 // hide the home tiles while a finished report is shown
 document.getElementById('buildBtn').addEventListener('click', ()=>{
   if(!getOppName()) return;
