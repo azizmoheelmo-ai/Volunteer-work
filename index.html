@@ -607,6 +607,12 @@
   .wz-t.row.on { background: var(--green-pale); }
   .wz-t.row:active { transform: none; background: var(--green-pale); }
   .wz-t.row small { white-space: nowrap; }
+  .wz-t.sw { touch-action: pan-y; user-select: none; -webkit-user-select: none; }
+  .wz-t.sw.drag { transition: none; animation: none; }
+  .wz-t.sw.del { background: #fde8e6; border-color: #c0392b; color: #c0392b; }
+  .wz-t.sw.del .ti { background: #c0392b; color: #fff; }
+  .wz-t.sw.out { transition: transform .18s ease, opacity .18s ease; opacity: 0; animation: none; }
+  .wz-hint { margin: 0 0 8px; font-size: .78rem; color: var(--ink-soft); }
   .wz-t.row .ok { width: 18px; height: 18px; color: var(--green-deep); }
   .wz-sr { display: flex; gap: 8px; margin-bottom: 10px; }
   .wz-sr .wz-search { margin: 0; flex: 1; min-width: 0; }
@@ -1169,6 +1175,37 @@
     cbox.hidden = selEl.value !== 'OTHER';
     cin.addEventListener('input', () => { $('customName').value = cin.value; $('customName').dispatchEvent(new Event('input')); refresh(); });
 
+    // swipe a «فرصي» row right or left to delete it (asks first; a short drag just snaps back)
+    function swipeDel(b, name){
+      b.classList.add('sw');
+      let x0 = 0, y0 = 0, dx = 0, on = false, horiz = false;
+      b.addEventListener('pointerdown', e => { if(e.pointerType === 'mouse' && e.button !== 0) return; x0 = e.clientX; y0 = e.clientY; dx = 0; on = true; horiz = false; b.__dragged = false; });
+      b.addEventListener('pointermove', e => {
+        if(!on) return;
+        const mx = e.clientX - x0, my = e.clientY - y0;
+        if(!horiz){ if(Math.abs(mx) > 10 && Math.abs(mx) > Math.abs(my) * 1.5){ horiz = true; b.classList.add('drag'); try{ b.setPointerCapture(e.pointerId); }catch(_){} } else return; }
+        dx = mx; b.__dragged = true;
+        b.style.transform = 'translateX(' + dx + 'px)';
+        b.classList.toggle('del', Math.abs(dx) > 90);
+      });
+      function end(){
+        if(!on) return; on = false;
+        b.classList.remove('drag');
+        if(!horiz){ return; }
+        if(Math.abs(dx) > 90){
+          b.classList.add('out'); b.style.transform = 'translateX(' + (dx > 0 ? 110 : -110) + '%)';
+          setTimeout(() => {
+            if(confirm('حذف الفرصة «' + name + '» من قائمتك؟')){
+              deleteCustomOpp(name);
+              if(!OPPS.some(o => o.cat === 'فرصي')){ const k = cats.indexOf('فرصي'); if(k > -1) cats.splice(k, 1); if(cat === 'فرصي'){ cat = ''; state.oppCat = ''; } }
+              drawChips(); draw(); refresh();
+            } else { b.classList.remove('out', 'del'); b.style.transform = ''; }
+          }, 190);
+        } else { b.classList.remove('del'); b.style.transform = ''; }
+        setTimeout(() => { b.__dragged = false; }, 50);
+      }
+      b.addEventListener('pointerup', end); b.addEventListener('pointercancel', end);
+    }
     function markOn(btn){ grid.querySelectorAll('.wz-t').forEach(x => x.classList.toggle('on', x === btn)); }
     function choose(value, btn){
       selEl.value = value; selEl.dispatchEvent(new Event('change'));
@@ -1189,13 +1226,15 @@
       grid.innerHTML = '';
       const term = q.trim();
       const list = OPPS.filter(o => term ? (o.name.indexOf(term) > -1 || (o.desc || '').indexOf(term) > -1) : (!cat || o.cat === cat));
+      if(list.some(o => o.custom)){ const h = document.createElement('div'); h.className = 'wz-hint'; h.textContent = 'لحذف فرصة من «فرصي» اسحبها يميناً أو يساراً.'; grid.appendChild(h); }
       list.forEach((o, i) => {
         const b = document.createElement('button'); b.type = 'button'; b.className = 'wz-t' + (view === 'list' ? ' row' : ''); b.style.setProperty('--d', Math.min(i, 10) * 35 + 'ms');
         const key = o.cat + '|' + o.name;
         b.innerHTML = '<span class="ti">' + svg(oppIcon(o.name)) + '</span><span>' + esc(o.name) + '</span>' +
           (view === 'list' ? '' : (o.level ? '<span class="lv">' + esc(o.level) + '</span>' : '')) + (o.days ? '<small>' + esc(o.days) + '</small>' : '');
         if(selEl.value === key) b.classList.add('on');
-        b.addEventListener('click', () => choose(key, b));
+        if(o.custom) swipeDel(b, o.name);
+        b.addEventListener('click', () => { if(b.__dragged){ b.__dragged = false; return; } choose(key, b); });
         grid.appendChild(b);
       });
       if(!list.length) grid.innerHTML = '<div class="wz-empty">لا توجد فرص مطابقة</div>';
@@ -1605,16 +1644,20 @@ delOppBtn.className = 'ghost';
 delOppBtn.textContent = 'حذف هذه الفرصة من قائمتي';
 delOppBtn.style.cssText = 'display:none;margin-top:8px;';
 sel.parentNode.appendChild(delOppBtn);
-delOppBtn.addEventListener('click', ()=>{
-  const [cat, name] = sel.value.split("|");
-  if(cat !== "فرصي" || !confirm('حذف الفرصة «' + name + '» من قائمتك؟')) return;
+// removes one opportunity from «فرصي» (storage, list, dropdown); used by the delete button and by swipe-to-delete
+function deleteCustomOpp(name){
   saveCustomOpps(loadCustomOpps().filter(x=>x.name !== name));
   const i = OPPS.findIndex(x=>x.custom && x.name === name);
   if(i > -1) OPPS.splice(i, 1);
-  Array.from(sel.options).forEach(op=>{ if(op.value === cat+"|"+name) op.remove(); });
+  const key = "فرصي|" + name, wasSel = sel.value === key;
+  Array.from(sel.options).forEach(op=>{ if(op.value === key) op.remove(); });
   sel.querySelectorAll('optgroup').forEach(g=>{ if(!g.children.length) g.remove(); });
-  sel.value = "";
-  sel.dispatchEvent(new Event('change'));
+  if(wasSel){ sel.value = ""; sel.dispatchEvent(new Event('change')); }
+}
+delOppBtn.addEventListener('click', ()=>{
+  const [cat, name] = sel.value.split("|");
+  if(cat !== "فرصي" || !confirm('حذف الفرصة «' + name + '» من قائمتك؟')) return;
+  deleteCustomOpp(name);
 });
 
 const customNameField = document.getElementById('customNameField');
