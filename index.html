@@ -687,6 +687,18 @@
   .ai-btns button { padding: 12px 8px; }
   .ai-msg { min-height: 1.4em; margin-top: 6px; font-size: .8rem; color: var(--green-bright); font-weight: 600; }
   .wz-pick.col1 { grid-template-columns: 1fr; }
+  .ai-cust { margin-top: 10px; padding: 14px 12px; border: 2px solid var(--line); border-radius: 14px; background: var(--paper); }
+  .ai-cust.on { border-color: var(--green); background: var(--green-pale); }
+  .ai-cust h4 { margin: 0 0 12px; text-align: center; font: 700 1.05rem var(--font-head); }
+  .ai-cust .row { display: flex; gap: 12px; }
+  .ai-cust .col { flex: 1; text-align: center; }
+  .ai-cust .col > span { display: block; margin-bottom: 8px; font: 600 .8rem var(--font-body); color: var(--ink-soft); }
+  .ai-cust .ctl { display: flex; align-items: center; justify-content: center; gap: 12px; }
+  .ai-cust .ctl button { width: 40px; height: 40px; padding: 0; border-radius: 50%; border: 1.5px solid var(--line); background: #fff; color: var(--green-deep); font: 700 1.4rem var(--font-head); line-height: 1; cursor: pointer; }
+  .ai-cust .ctl button:active { transform: scale(.92); }
+  .ai-cust .ctl b { min-width: 30px; text-align: center; font: 700 1.7rem var(--font-head); }
+  .ai-cust .tot { margin-top: 12px; text-align: center; padding: 8px; border-radius: 10px; background: var(--green-pale); color: var(--green-deep); font: 600 .85rem var(--font-body); }
+  .ai-cust.on .tot { background: #fff; }
   .wz-pick.col3 { grid-template-columns: 1fr 1fr 1fr; }
   .wz-pick.col1 button, .wz-pick.col3 button { padding: 14px 8px; }
   .school-card { display: flex; align-items: center; gap: 12px; width: 100%; text-align: right; padding: 11px 14px; margin-bottom: 14px; border: 1.5px solid var(--green); border-radius: 16px; background: var(--green-pale); color: var(--ink); font-family: var(--font-body); cursor: pointer; transition: transform .15s ease; }
@@ -1325,13 +1337,17 @@
 
   // ===== AI helper tile: build a prompt for ChatGPT / Gemini / Claude, then import the reply into "فرصي" =====
   const AIDUR = [
-    {days:'5 أيام', hours:'ساعة يومياً', l:'5 أيام', sm:'ساعة يومياً — الأشيع في البنك'},
-    {days:'يوم واحد', hours:'5 ساعات', l:'يوم واحد', sm:'5 ساعات — للفعاليات'},
-    {days:'يوم واحد', hours:'حصة واحدة', l:'يوم واحد', sm:'حصة واحدة — مبادرة قصيرة'}
+    {days:'5 أيام', hours:'ساعة يومياً', a:'5 أيام', b:'ساعة يومياً', sm:'الأشيع في البنك'},
+    {days:'يوم واحد', hours:'5 ساعات', a:'يوم واحد', b:'5 ساعات', sm:'للفعاليات'},
+    {days:'يوم واحد', hours:'حصة واحدة', a:'يوم واحد', b:'حصة واحدة', sm:'مبادرة قصيرة'},
+    {days:'5 أيام (عن بعد)', hours:'25 ساعة بالمجموع', remote:true, a:'5 أيام', b:'25 ساعة', sm:'بالمجموع — عن بعد'}
   ];
-  const AIST = {idea:'', dur:0, level:'', reply:''};
+  const daysText = n => n === 1 ? 'يوم واحد' : n === 2 ? 'يومان' : n <= 10 ? n + ' أيام' : n + ' يوماً';
+  const hrsText = n => n === 1 ? 'ساعة يومياً' : n === 2 ? 'ساعتان يومياً' : n + ' ساعات يومياً';
+  const aiDur = () => AIST.dur < AIDUR.length ? AIDUR[AIST.dur] : {days:daysText(AIST.cd), hours:hrsText(AIST.ch)};
+  const AIST = {idea:'', dur:0, cd:3, ch:2, level:'', reply:''};
   function aiPrompt(){
-    const d = AIDUR[AIST.dur];
+    const d = aiDur();
     const ex = ['تنظيم الطابور الصباحي', 'مدرستي ترشّد'].map(n => OPPS.find(o => o.name === n && o.cat !== 'فرصي')).filter(Boolean)
       .map(o => JSON.stringify({name:o.name, level:o.level, desc:o.desc, skills:o.skills, tasks:o.tasks, days:o.days, hours:o.hours}, null, 1)).join('\n\n');
     return [
@@ -1340,6 +1356,7 @@
       'اكتب فرصة تطوعية عن هذه الفكرة: «' + AIST.idea.trim() + '»',
       'المستوى: ' + (AIST.level || 'اختر الأنسب (عام أو مهاري)') + '.',
       'المدة: ' + d.days + '، ' + d.hours + ' (استخدم هاتين القيمتين كما هما في days وhours).',
+      d.remote ? 'الفرصة تُنفَّذ عن بعد (عبر الإنترنت)، فاجعل مهامها قابلة للتنفيذ عن بعد وتحت إشراف المعلم.' : null,
       '',
       'قواعد الأسلوب (مثل فرص البنك تماماً):',
       '- اسم الفرصة قصير من 2 إلى 5 كلمات، مثل «تنظيم …» أو «مساعد …» أو «سفير …».',
@@ -1353,7 +1370,7 @@
       ex,
       '',
       'شكل الإخراج: أعد كتلة JSON واحدة فقط بلا أي شرح قبلها أو بعدها، بالمفاتيح: name, level, desc, skills, tasks, days, hours.'
-    ].join('\n');
+    ].filter(x => x !== null).join('\n');
   }
   // Lenient reader: replies copied out of chat apps often arrive with escaped brackets (\[ \]), smart quotes,
   // hidden direction marks, a missing { }, or stray quotes, so strict JSON.parse alone is not enough.
@@ -1374,7 +1391,7 @@
     const r = aiParse(AIST.reply); if(!r) return;
     let b64 = r.link;
     if(!b64){
-      const d = AIDUR[AIST.dur], o = cleanOpp(r.opp); if(!o) return;
+      const d = aiDur(), o = cleanOpp(r.opp); if(!o) return;
       if(AIST.level) o.level = AIST.level;
       if(o.level !== 'مهاري') o.level = 'عام';
       o.days = d.days; o.hours = d.hours;
@@ -1411,8 +1428,35 @@
         setTimeout(() => i.focus(), 50);
         return w;
       }},
-    {t:'كم مدة الفرصة؟', h:'الأشيع في البنك: 5 أيام بواقع ساعة يومياً.',
-      build:() => aiChoice(AIDUR.map((d, i) => [i, d.l, d.sm]), () => AIST.dur, v => { AIST.dur = Number(v); }, 'col1')},
+    {t:'كم مدة الفرصة؟', h:'اختر مدة جاهزة، أو حدّد الأيام والساعات بنفسك.',
+      build:() => {
+        const w = document.createElement('div'), grid = document.createElement('div'); grid.className = 'wz-pick';
+        AIDUR.forEach((d, i) => {
+          const b = document.createElement('button'); b.type = 'button'; b.dataset.v = i; b.style.padding = '16px 6px';
+          b.innerHTML = '<b style="display:block;font:700 1.15rem var(--font-head)">' + d.a + '</b><b style="display:block;font:700 .85rem var(--font-head);margin-top:4px">' + d.b + '</b><small>' + d.sm + '</small>';
+          b.addEventListener('click', () => { AIST.dur = i; sync(); });
+          grid.appendChild(b);
+        });
+        const c = document.createElement('div'); c.className = 'ai-cust';
+        c.innerHTML = '<h4>مدة مخصصة</h4><div class="row">' +
+          [['عدد الأيام', 'cd'], ['ساعات اليوم', 'ch']].map(([l, k]) => '<div class="col"><span>' + l + '</span><div class="ctl"><button type="button" data-k="' + k + '" data-s="1" aria-label="زيادة">+</button><b data-v="' + k + '"></b><button type="button" data-k="' + k + '" data-s="-1" aria-label="إنقاص">−</button></div></div>').join('') +
+          '</div><div class="tot"></div>';
+        const LIM = {cd:[1, 30], ch:[1, 8]};
+        c.addEventListener('click', e => {
+          const bt = e.target.closest('button'); if(bt){ const k = bt.dataset.k; AIST[k] = Math.min(LIM[k][1], Math.max(LIM[k][0], AIST[k] + Number(bt.dataset.s))); }
+          AIST.dur = AIDUR.length; sync();
+        });
+        function sync(){
+          grid.querySelectorAll('button').forEach(b => b.classList.toggle('on', Number(b.dataset.v) === AIST.dur));
+          c.classList.toggle('on', AIST.dur === AIDUR.length);
+          c.querySelector('[data-v=cd]').textContent = AIST.cd; c.querySelector('[data-v=ch]').textContent = AIST.ch;
+          const t = AIST.cd * AIST.ch;
+          c.querySelector('.tot').textContent = (AIST.cd === 1 ? 'يوم واحد' : AIST.cd === 2 ? 'يومان' : AIST.cd + (AIST.cd <= 10 ? ' أيام' : ' يوماً')) + ' × ' + (AIST.ch === 2 ? 'ساعتان' : AIST.ch + (AIST.ch <= 10 ? ' ساعات' : ' ساعة')) + ' = ' + formatHours(t);
+        }
+        curSync = sync; sync();
+        w.append(grid, c);
+        return w;
+      }},
     {t:'ما مستوى الفرصة؟', h:'«مهاري» لما يحتاج مهارة خاصة كالإلقاء أو التصميم، وإلا فـ«عام».',
       build:() => aiChoice([['', 'يقترح الذكاء', ''], ['عام', 'عام', ''], ['مهاري', 'مهاري', '']], () => AIST.level, v => { AIST.level = v; }, 'col3')},
     {t:'أمرك جاهز', h:'انسخه وأرسله لأي ذكاء صناعي، ثم ارجع والصق رده.',
@@ -1495,7 +1539,7 @@
   };
   $('homeReport').addEventListener('click', () => { fresh(); begin(REPORT); });
   $('homeCert').addEventListener('click', () => { fresh(); state.gender = ''; state.studentName = ''; begin(CERT); });
-  $('homeAi').addEventListener('click', () => { AIST.idea = ''; AIST.dur = 0; AIST.level = ''; AIST.reply = ''; open(AI); });
+  $('homeAi').addEventListener('click', () => { AIST.idea = ''; AIST.dur = 0; AIST.cd = 3; AIST.ch = 2; AIST.level = ''; AIST.reply = ''; open(AI); });
   $('schoolCard').addEventListener('click', () => open(SETTINGS, 0));
   if($('wzSchool')) $('wzSchool').addEventListener('click', () => { const back = STEPS, bi = idx; open(SETTINGS, 0, () => open(back, bi)); });
   window.vwWizard = { report: () => open(REPORT, REPORT.findIndex(x => x.review)) };
@@ -1704,6 +1748,7 @@ function formatHours(n){
 }
 function totalHoursText(daysText, hoursText){
   if(/حصة/.test(hoursText || "")) return hoursText;
+  if(/مجموع/.test(hoursText || "")){ const n = Number((hoursText.match(/\d+/) || [0])[0]); return n ? formatHours(n) : hoursText; }
   const total = countDays(daysText) * hoursPerDay(hoursText);
   return total ? formatHours(total) : "";
 }
