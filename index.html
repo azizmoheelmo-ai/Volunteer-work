@@ -674,6 +674,15 @@
   .wz-bar i { background: linear-gradient(90deg, #3B83B7, #4CB176); }
   .wz-ok .c { background: var(--green-bright); }
   .hcard.amber .hi { background: #f5f1e6; color: #7d6d3f; }
+  .hcard.ai .hi { background: var(--purple-pale); color: var(--purple); }
+  .ai-prompt { width: 100%; min-height: 210px; font-size: .8rem; line-height: 1.7; direction: rtl; }
+  .ai-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 10px 0 4px; }
+  .ai-btns .full { grid-column: 1 / -1; }
+  .ai-btns button { padding: 12px 8px; }
+  .ai-msg { min-height: 1.4em; margin-top: 6px; font-size: .8rem; color: var(--green-bright); font-weight: 600; }
+  .wz-pick.col1 { grid-template-columns: 1fr; }
+  .wz-pick.col3 { grid-template-columns: 1fr 1fr 1fr; }
+  .wz-pick.col1 button, .wz-pick.col3 button { padding: 14px 8px; }
   .school-card { display: flex; align-items: center; gap: 12px; width: 100%; text-align: right; padding: 11px 14px; margin-bottom: 14px; border: 1.5px solid var(--green); border-radius: 16px; background: var(--green-pale); color: var(--ink); font-family: var(--font-body); cursor: pointer; transition: transform .15s ease; }
   .school-card:active { transform: scale(.98); }
   .school-card .sc-i { width: 38px; height: 38px; border-radius: 11px; flex: none; display: grid; place-items: center; background: var(--green-deep); color: #fff; }
@@ -723,6 +732,11 @@
     <button class="hcard amber" id="homeCert" type="button">
       <span class="hi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/></svg></span>
       <span><b>شهادة شكر وتقدير</b><span class="d">لطالب أو طالبة شارك في عمل تطوعي</span></span>
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
+    </button>
+    <button class="hcard ai" id="homeAi" type="button">
+      <span class="hi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/></svg></span>
+      <span><b>مساعدة الذكاء الصناعي</b><span class="d">أمر جاهز يكتب لك فرصة تطوعية في ChatGPT أو Gemini أو Claude</span></span>
       <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
     </button>
     <button class="home-adv" id="homeAdv" type="button">فتح النموذج الكامل</button>
@@ -1112,6 +1126,7 @@
     medic: '<path d="M12 11v4"/><path d="M14 13h-4"/><path d="M16 6V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><path d="M18 6v14"/><path d="M6 6v14"/><rect width="20" height="14" x="2" y="6" rx="2"/>',
     monitor: '<rect width="20" height="14" x="2" y="3" rx="2"/><line x1="8" x2="16" y1="21" y2="21"/><line x1="12" x2="12" y1="17" y2="21"/>',
     heart: '<path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>',
+    sparkle: '<path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/>',
     plus: '<path d="M5 12h14"/><path d="M12 5v14"/>',
     user: '<path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>',
     building: '<path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/>'
@@ -1268,6 +1283,118 @@
     {t:'الشهادة جاهزة', h:'راجعها ثم اطبعها أو احفظها PDF.', els:()=>[], done:true, label:'🖨 طباعة / حفظ PDF', build:previewNode,
       action:()=>{ if(state.noteEl) state.noteEl.hidden = true; printCert(v => { if(state.noteEl) state.noteEl.hidden = !v; }); }}
   ];
+
+  // ===== AI helper tile: build a prompt for ChatGPT / Gemini / Claude, then import the reply into "فرصي" =====
+  const AIDUR = [
+    {days:'5 أيام', hours:'ساعة يومياً', l:'5 أيام', sm:'ساعة يومياً — الأشيع في البنك'},
+    {days:'يوم واحد', hours:'5 ساعات', l:'يوم واحد', sm:'5 ساعات — للفعاليات'},
+    {days:'يوم واحد', hours:'حصة واحدة', l:'يوم واحد', sm:'حصة واحدة — مبادرة قصيرة'}
+  ];
+  const AIST = {idea:'', dur:0, level:'', reply:''};
+  function aiPrompt(){
+    const d = AIDUR[AIST.dur];
+    const ex = ['تنظيم الطابور الصباحي', 'مدرستي ترشّد'].map(n => OPPS.find(o => o.name === n && o.cat !== 'فرصي')).filter(Boolean)
+      .map(o => JSON.stringify({name:o.name, level:o.level, desc:o.desc, skills:o.skills, tasks:o.tasks, days:o.days, hours:o.hours}, null, 1)).join('\n\n');
+    return [
+      'أنت كاتب فرص تطوعية لطلاب المدارس في السعودية ضمن «بنك الفرص التطوعية المدرسية» (وزارة التعليم).',
+      '',
+      'اكتب فرصة تطوعية عن هذه الفكرة: «' + AIST.idea.trim() + '»',
+      'المستوى: ' + (AIST.level || 'اختر الأنسب (عام أو مهاري)') + '.',
+      'المدة: ' + d.days + '، ' + d.hours + ' (استخدم هاتين القيمتين كما هما في days وhours).',
+      '',
+      'قواعد الأسلوب (مثل فرص البنك تماماً):',
+      '- اسم الفرصة قصير من 2 إلى 5 كلمات، مثل «تنظيم …» أو «مساعد …» أو «سفير …».',
+      '- الوصف جملة واحدة واضحة تبدأ بفعل مصدر مثل: المساهمة، المساعدة، تعزيز، دعم.',
+      '- المهارات من 2 إلى 3، وكل مهارة كلمتان أو ثلاث.',
+      '- المهام من 3 إلى 4، كل مهمة جملة قصيرة تنتهي بنقطة، والأولى غالباً التواصل واستلام المهام من مشرف الفرصة.',
+      '- كل المهام آمنة وداخل المدرسة وتحت إشراف المعلمين، دون تصوير الطلاب أو جمع أموال أو أي عمل خطر.',
+      '- عربية فصحى مختصرة بلا حشو ولا مبالغة.',
+      '',
+      'أمثلة من البنك:',
+      ex,
+      '',
+      'شكل الإخراج: أعد كتلة JSON واحدة فقط بلا أي شرح قبلها أو بعدها، بالمفاتيح: name, level, desc, skills, tasks, days, hours.',
+      'وإن كانت لديك أداة create_opportunity فاستخدمها وأعطني الرابط الذي تعيده بدلاً من JSON.'
+    ].join('\n');
+  }
+  function aiParse(t){
+    t = (t || '').trim(); if(!t) return null;
+    const m = t.match(/[?&]add=([A-Za-z0-9_\-=]+)/); if(m) return {link:m[1]};
+    const a = t.indexOf('{'), b = t.lastIndexOf('}'); if(a < 0 || b < a) return null;
+    try{ const o = JSON.parse(t.slice(a, b + 1)); return o && typeof o.name === 'string' && o.name.trim() ? {opp:o} : null; }catch(e){ return null; }
+  }
+  function aiImport(){
+    const r = aiParse(AIST.reply); if(!r) return;
+    let b64 = r.link;
+    if(!b64){
+      const d = AIDUR[AIST.dur], o = cleanOpp(r.opp); if(!o) return;
+      if(AIST.level) o.level = AIST.level;
+      if(o.level !== 'مهاري') o.level = 'عام';
+      o.days = d.days; o.hours = d.hours;
+      const bytes = new TextEncoder().encode(JSON.stringify({name:o.name, level:o.level, desc:o.desc, skills:o.skills, tasks:o.tasks, days:o.days, hours:o.hours}));
+      let bin = ''; bytes.forEach(c => bin += String.fromCharCode(c));
+      b64 = btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    }
+    location.href = location.pathname + '?add=' + b64; // the page imports it into «فرصي» and selects it
+  }
+  function aiCopy(text){
+    return (navigator.clipboard && navigator.clipboard.writeText ? navigator.clipboard.writeText(text) : Promise.reject()).catch(() => {
+      const ta = document.createElement('textarea'); ta.value = text; ta.style.cssText = 'position:fixed;opacity:0'; document.body.appendChild(ta); ta.select();
+      try{ document.execCommand('copy'); }catch(e){} ta.remove();
+    });
+  }
+  function aiChoice(opts, get, set, cls){
+    const w = document.createElement('div'); w.className = 'wz-pick ' + cls;
+    opts.forEach(([v, l, sm]) => {
+      const b = document.createElement('button'); b.type = 'button'; b.dataset.v = v; b.innerHTML = l + (sm ? '<small>' + sm + '</small>' : '');
+      b.addEventListener('click', () => { set(v); sync(); });
+      w.appendChild(b);
+    });
+    function sync(){ w.querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.v === String(get()))); }
+    curSync = sync; sync();
+    return w;
+  }
+  const AI = [
+    {t:'ما فكرة الفرصة؟', h:'اكتبها بكلمات بسيطة، والذكاء الصناعي يصوغها بأسلوب فرص البنك.', why:'اكتب فكرة الفرصة للمتابعة', ok:() => !!AIST.idea.trim(),
+      build:() => {
+        const w = document.createElement('div'); w.className = 'field';
+        w.innerHTML = '<label for="aiIdea">الفكرة</label><textarea id="aiIdea" placeholder="مثال: متطوعون يرتبون رفوف المكتبة ويصنفون الكتب"></textarea>';
+        const i = w.querySelector('textarea'); i.value = AIST.idea;
+        i.addEventListener('input', () => { AIST.idea = i.value; });
+        setTimeout(() => i.focus(), 50);
+        return w;
+      }},
+    {t:'كم مدة الفرصة؟', h:'الأشيع في البنك: 5 أيام بواقع ساعة يومياً.',
+      build:() => aiChoice(AIDUR.map((d, i) => [i, d.l, d.sm]), () => AIST.dur, v => { AIST.dur = Number(v); }, 'col1')},
+    {t:'ما مستوى الفرصة؟', h:'«مهاري» لما يحتاج مهارة خاصة كالإلقاء أو التصميم، وإلا فـ«عام».',
+      build:() => aiChoice([['', 'يقترح الذكاء', ''], ['عام', 'عام', ''], ['مهاري', 'مهاري', '']], () => AIST.level, v => { AIST.level = v; }, 'col3')},
+    {t:'أمرك جاهز', h:'انسخه وأرسله لأي ذكاء صناعي، ثم ارجع والصق رده.',
+      build:() => {
+        const w = document.createElement('div'), prompt = aiPrompt();
+        const ta = document.createElement('textarea'); ta.className = 'ai-prompt'; ta.readOnly = true; ta.value = prompt;
+        const msg = document.createElement('div'); msg.className = 'ai-msg';
+        const row = document.createElement('div'); row.className = 'ai-btns';
+        [['نسخ الأمر', null, 'full primary'], ['ChatGPT', 'https://chatgpt.com/?q=', 'ghost'], ['Claude', 'https://claude.ai/new?q=', 'ghost'], ['Gemini', 'https://gemini.google.com/app', 'ghost full']].forEach(([l, url, c]) => {
+          const b = document.createElement('button'); b.type = 'button'; b.className = c; b.textContent = l;
+          b.addEventListener('click', () => {
+            aiCopy(prompt).then(() => { msg.textContent = url ? 'تم نسخ الأمر. إن لم يظهر في المحادثة فالصقه فيها.' : 'تم نسخ الأمر ✓'; });
+            if(url) window.open(url + (/\?q=$/.test(url) ? encodeURIComponent(prompt) : ''), '_blank', 'noopener');
+          });
+          row.appendChild(b);
+        });
+        w.append(ta, row, msg);
+        return w;
+      }},
+    {t:'الصق رد الذكاء الصناعي', h:'الصق الفرصة التي كتبها (JSON) أو الرابط الذي أعطاك إياه كلود.', done:true, label:'إضافة الفرصة إلى «فرصي» ✓',
+      why:'الصق رد الذكاء الصناعي للمتابعة', ok:() => !!aiParse(AIST.reply), action:aiImport,
+      build:() => {
+        const w = document.createElement('div'); w.className = 'field';
+        w.innerHTML = '<label for="aiReply">رد الذكاء الصناعي</label><textarea id="aiReply" class="ai-prompt" placeholder="الصق هنا…"></textarea>';
+        const i = w.querySelector('textarea'); i.value = AIST.reply;
+        i.addEventListener('input', () => { AIST.reply = i.value; });
+        return w;
+      }}
+  ];
   const SETTINGS = [
     {t:'بيانات المدرسة', h:'تُحفظ على جوالك وتُستخدم في كل التقارير والشهادات، فلا تكتبها مرة ثانية.',
       els:()=>[f('schoolName'), f('signPrincipal'), f('signCoordinator'), f('signVice')],
@@ -1293,8 +1420,8 @@
     prev.disabled = i === 0; prev.style.visibility = st.solo ? 'hidden' : '';
     const chip = $('wzSchool');
     if(chip){
-      chip.hidden = !!st.done;
-      if(!st.done){ const n = $('schoolName').value.trim(); chip.innerHTML = svg('building') + '<span>' + (n ? n.replace(/</g,'&lt;') : 'أضف بيانات مدرستك') + '</span><b>' + (n ? 'تغيير' : 'إضافة') + '</b>'; }
+      chip.hidden = !!st.done || STEPS === AI;
+      if(!chip.hidden){ const n = $('schoolName').value.trim(); chip.innerHTML = svg('building') + '<span>' + (n ? n.replace(/</g,'&lt;') : 'أضف بيانات مدرستك') + '</span><b>' + (n ? 'تغيير' : 'إضافة') + '</b>'; }
     }
     next.textContent = st.done ? st.label : 'التالي ‹';
     const tile = wz.querySelector('.wz-tile');
@@ -1321,6 +1448,7 @@
   };
   $('homeReport').addEventListener('click', () => { fresh(); begin(REPORT); });
   $('homeCert').addEventListener('click', () => { fresh(); state.gender = ''; state.studentName = ''; begin(CERT); });
+  $('homeAi').addEventListener('click', () => { AIST.idea = ''; AIST.dur = 0; AIST.level = ''; AIST.reply = ''; open(AI); });
   $('schoolCard').addEventListener('click', () => open(SETTINGS, 0));
   if($('wzSchool')) $('wzSchool').addEventListener('click', () => { const back = STEPS, bi = idx; open(SETTINGS, 0, () => open(back, bi)); });
   window.vwWizard = { report: () => open(REPORT, REPORT.findIndex(x => x.review)) };
