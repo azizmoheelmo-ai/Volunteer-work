@@ -1472,6 +1472,14 @@
           });
           row.appendChild(b);
         });
+        if(navigator.share){
+          const sb = document.createElement('button'); sb.type = 'button'; sb.className = 'ghost full'; sb.textContent = 'مشاركة إلى تطبيق (مثل Gemini)';
+          sb.addEventListener('click', () => {
+            aiCopy(prompt);
+            navigator.share({text: prompt}).catch(err => { if(err && err.name !== 'AbortError') msg.textContent = 'تعذّرت المشاركة، تم نسخ الأمر فالصقه يدوياً.'; });
+          });
+          row.appendChild(sb);
+        }
         w.append(ta, row, msg);
         return w;
       }},
