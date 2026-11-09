@@ -599,6 +599,21 @@
   .wz-t small { font-weight: 400; font-size: .72rem; color: var(--ink-soft); }
   .wz-t .lv { font: 600 .7rem var(--font-body); padding: 1px 8px; border-radius: 999px; background: var(--green-pale); color: var(--green-deep); }
   .wz-t.on .lv { background: #fff; }
+  .wz-list { display: block; margin-bottom: 10px; border-top: 1px solid var(--line); }
+  .wz-t.row { flex-direction: row; align-items: center; gap: 10px; min-height: 0; width: 100%; padding: 11px 6px; border: 0; border-bottom: 1px solid var(--line); border-radius: 0; background: transparent; font-weight: 600; animation: none; }
+  .wz-t.row > span:nth-child(2) { flex: 1; }
+  .wz-t.row .ti { width: 30px; height: 30px; border-radius: 9px; }
+  .wz-t.row .ti svg { width: 18px; height: 18px; }
+  .wz-t.row.on { background: var(--green-pale); }
+  .wz-t.row:active { transform: none; background: var(--green-pale); }
+  .wz-t.row small { white-space: nowrap; }
+  .wz-t.row .ok { width: 18px; height: 18px; color: var(--green-deep); }
+  .wz-sr { display: flex; gap: 8px; margin-bottom: 10px; }
+  .wz-sr .wz-search { margin: 0; flex: 1; min-width: 0; }
+  .wz-view { display: flex; flex: none; border: 1.5px solid var(--line); border-radius: 10px; overflow: hidden; }
+  .wz-view button { width: 40px; border: 0; background: var(--paper); color: var(--ink-soft); cursor: pointer; display: grid; place-items: center; }
+  .wz-view button.on { background: var(--green-deep); color: #fff; }
+  .wz-view svg { width: 18px; height: 18px; }
   .wz-t.wide { grid-column: 1 / -1; min-height: 0; flex-direction: row; align-items: center; gap: 10px; }
   .wz-empty { grid-column: 1 / -1; text-align: center; color: var(--ink-soft); font-size: .85rem; padding: 16px 0; }
   .wz-why { max-width: 520px; width: 100%; margin: 0 auto; padding: 0 16px; font-size: .78rem; color: var(--amber); min-height: 1.3em; text-align: center; }
@@ -1068,6 +1083,8 @@
 
   // small outline icons for the tiles
   const IC = {
+    list: '<line x1="8" x2="21" y1="6" y2="6"/><line x1="8" x2="21" y1="12" y2="12"/><line x1="8" x2="21" y1="18" y2="18"/><line x1="3" x2="3.01" y1="6" y2="6"/><line x1="3" x2="3.01" y1="12" y2="12"/><line x1="3" x2="3.01" y1="18" y2="18"/>',
+    grid: '<rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/>',
     users: '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
     mic: '<path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/>',
     shield: '<path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/>',
@@ -1102,12 +1119,17 @@
     const cats = ['أساسية', 'إضافية', 'رسمية', 'مقترحة'];
     if(OPPS.some(o => o.cat === 'فرصي')) cats.unshift('فرصي');
     const curCat = selEl.value && selEl.value.indexOf('|') > 0 ? selEl.value.split('|')[0] : '';
-    let cat = cats.includes(curCat) ? curCat : (cats.includes(state.oppCat) ? state.oppCat : 'أساسية');
+    let cat = cats.includes(curCat) ? curCat : (cats.includes(state.oppCat) ? state.oppCat : '');
+    let view = 'list'; try{ view = localStorage.getItem('oppView') === 'tiles' ? 'tiles' : 'list'; }catch(e){}
     let q = '', first = true;
 
     const chips = document.createElement('div'); chips.className = 'wz-chips';
     const search = document.createElement('input'); search.type = 'text'; search.className = 'wz-search'; search.placeholder = 'ابحث عن فرصة'; search.setAttribute('autocomplete', 'off');
     const grid = document.createElement('div');
+    const sr = document.createElement('div'); sr.className = 'wz-sr';
+    const vw = document.createElement('div'); vw.className = 'wz-view';
+    [['list','قائمة','list'],['tiles','بلاطات','grid']].forEach(([k,l,ic]) => { const b = document.createElement('button'); b.type = 'button'; b.setAttribute('aria-label', l); b.dataset.k = k; b.innerHTML = svg(ic); b.addEventListener('click', () => { view = k; try{ localStorage.setItem('oppView', k); }catch(e){} syncView(); draw(); }); vw.appendChild(b); });
+    function syncView(){ vw.querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.k === view)); }
     const cbox = document.createElement('div'); cbox.className = 'field';
     cbox.innerHTML = '<label>اسم الفرصة</label><input type="text" placeholder="مثال: مسؤول لوحة الإعلانات" autocomplete="off">';
     const cin = cbox.querySelector('input'); cin.value = $('customName').value;
@@ -1123,35 +1145,36 @@
     }
     function drawChips(){
       chips.innerHTML = '';
-      cats.forEach(c => {
-        const b = document.createElement('button'); b.type = 'button'; b.className = 'wz-chip' + (c === cat && !q.trim() ? ' on' : ''); b.textContent = CAT_LABEL[c];
+      [''].concat(cats).forEach(c => {
+        const b = document.createElement('button'); b.type = 'button'; b.className = 'wz-chip' + (c === cat && !q.trim() ? ' on' : ''); b.textContent = c ? CAT_LABEL[c] : 'الكل';
         b.addEventListener('click', () => { cat = c; state.oppCat = c; q = ''; search.value = ''; drawChips(); draw(); });
         chips.appendChild(b);
       });
     }
     function draw(){
-      grid.className = 'wz-tiles' + (first ? '' : ' noanim'); first = false;
+      grid.className = (view === 'list' ? 'wz-list' : 'wz-tiles') + (first ? '' : ' noanim'); first = false;
       grid.innerHTML = '';
       const term = q.trim();
-      const list = OPPS.filter(o => term ? (o.name.indexOf(term) > -1 || (o.desc || '').indexOf(term) > -1) : o.cat === cat);
+      const list = OPPS.filter(o => term ? (o.name.indexOf(term) > -1 || (o.desc || '').indexOf(term) > -1) : (!cat || o.cat === cat));
       list.forEach((o, i) => {
-        const b = document.createElement('button'); b.type = 'button'; b.className = 'wz-t'; b.style.setProperty('--d', Math.min(i, 10) * 35 + 'ms');
+        const b = document.createElement('button'); b.type = 'button'; b.className = 'wz-t' + (view === 'list' ? ' row' : ''); b.style.setProperty('--d', Math.min(i, 10) * 35 + 'ms');
         const key = o.cat + '|' + o.name;
         b.innerHTML = '<span class="ti">' + svg(oppIcon(o.name)) + '</span><span>' + esc(o.name) + '</span>' +
-          (o.level ? '<span class="lv">' + esc(o.level) + '</span>' : '') + (o.days ? '<small>' + esc(o.days) + '</small>' : '');
+          (view === 'list' ? '' : (o.level ? '<span class="lv">' + esc(o.level) + '</span>' : '')) + (o.days ? '<small>' + esc(o.days) + '</small>' : '');
         if(selEl.value === key) b.classList.add('on');
         b.addEventListener('click', () => choose(key, b));
         grid.appendChild(b);
       });
       if(!list.length) grid.innerHTML = '<div class="wz-empty">لا توجد فرص مطابقة</div>';
-      const ob = document.createElement('button'); ob.type = 'button'; ob.className = 'wz-t wide' + (selEl.value === 'OTHER' ? ' on' : '');
+      const ob = document.createElement('button'); ob.type = 'button'; ob.className = 'wz-t wide' + (view === 'list' ? ' row' : '') + (selEl.value === 'OTHER' ? ' on' : '');
       ob.innerHTML = '<span class="ti">' + svg('plus') + '</span><span>أخرى — اكتب اسم الفرصة بنفسك</span>';
       ob.addEventListener('click', () => choose('OTHER', ob));
       grid.appendChild(ob);
     }
     search.addEventListener('input', () => { q = search.value; drawChips(); draw(); });
-    drawChips(); draw();
-    w.append(chips, search, grid, cbox);
+    syncView(); drawChips(); draw();
+    sr.append(search, vw);
+    w.append(sr, chips, grid, cbox);
     return w;
   }
   // level (عام / مهاري) as two tiles instead of a text box
@@ -1209,7 +1232,7 @@
       return w;
     }, ok: () => !!state.studentName.trim()
   };
-  const oppStep = {t:'ما الفرصة التطوعية؟', h:'اضغط على بلاطة الفرصة لتُعبّأ بياناتها تلقائياً، أو اختر «أخرى» واكتب اسمها.', build: buildOppTiles, ok:()=>!!getOppName(), why:'اختر فرصة للمتابعة'};
+  const oppStep = {t:'ما الفرصة التطوعية؟', h:'اختر الفرصة لتُعبّأ بياناتها تلقائياً، أو اختر «أخرى» واكتب اسمها.', build: buildOppTiles, ok:()=>!!getOppName(), why:'اختر فرصة للمتابعة'};
   const REPORT = [
     oppStep,
     {t:'راجع بيانات الفرصة', h:'عُبّئت تلقائياً، عدّل أي حقل تحتاجه.', review:true, build: buildLevelTiles, els:()=>[$('oppFields')]},
