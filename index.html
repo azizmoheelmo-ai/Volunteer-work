@@ -1464,7 +1464,7 @@
         const ta = document.createElement('textarea'); ta.className = 'ai-prompt'; ta.readOnly = true; ta.value = prompt;
         const msg = document.createElement('div'); msg.className = 'ai-msg';
         const row = document.createElement('div'); row.className = 'ai-btns';
-        [['نسخ الأمر', null, 'full primary'], ['ChatGPT', 'https://chatgpt.com/?q=', 'ghost'], ['Claude', 'https://claude.ai/new?q=', 'ghost'], ['Gemini', 'https://gemini.google.com/app', 'ghost full']].forEach(([l, url, c]) => {
+        [['نسخ الأمر', null, 'full primary'], ['ChatGPT', 'https://chatgpt.com/?q=', 'ghost'], ['Claude', 'https://claude.ai/new?q=', 'ghost']].forEach(([l, url, c]) => {
           const b = document.createElement('button'); b.type = 'button'; b.className = c; b.textContent = l;
           b.addEventListener('click', () => {
             aiCopy(prompt).then(() => { msg.textContent = url ? 'تم نسخ الأمر. إن لم يظهر في المحادثة فالصقه فيها.' : 'تم نسخ الأمر ✓'; });
@@ -1472,14 +1472,6 @@
           });
           row.appendChild(b);
         });
-        if(navigator.share){
-          const sb = document.createElement('button'); sb.type = 'button'; sb.className = 'ghost full'; sb.textContent = 'مشاركة إلى تطبيق (مثل Gemini)';
-          sb.addEventListener('click', () => {
-            aiCopy(prompt);
-            navigator.share({text: prompt}).catch(err => { if(err && err.name !== 'AbortError') msg.textContent = 'تعذّرت المشاركة، تم نسخ الأمر فالصقه يدوياً.'; });
-          });
-          row.appendChild(sb);
-        }
         w.append(ta, row, msg);
         return w;
       }},
