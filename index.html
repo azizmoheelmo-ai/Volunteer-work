@@ -654,6 +654,18 @@
     .reveal { opacity: 1; } .reveal.in, .wz-t, .wz-t.on, .wz-tile.in-next, .wz-tile.in-prev { animation: none !important; }
     header.top, .hdr-logo { transition: none; }
   }
+  .install-bar { display: flex; align-items: center; gap: 10px; margin: -28px -18px 14px; padding: 9px 14px; background: var(--paper-raised); border-bottom: 1px solid var(--line); animation: ibIn .35s cubic-bezier(.2,.7,.2,1) backwards; }
+  .install-bar[hidden] { display: none; }
+  .install-bar img { border-radius: 9px; flex: none; }
+  .ib-txt { flex: 1; min-width: 0; display: flex; flex-direction: column; line-height: 1.35; }
+  .ib-txt b { font: 700 .86rem var(--font-body); color: var(--ink); }
+  .ib-txt span { font-size: .72rem; color: var(--ink-soft); }
+  .ib-go { flex: none; padding: 7px 14px; border: 0; border-radius: 999px; background: var(--green-deep); color: #fff; font: 700 .8rem var(--font-body); cursor: pointer; }
+  .ib-go[hidden] { display: none; }
+  .ib-x { flex: none; width: 30px; height: 30px; border: 0; border-radius: 50%; background: transparent; color: var(--ink-soft); font-size: 1.4rem; line-height: 1; cursor: pointer; }
+  @keyframes ibIn { from { opacity: 0; transform: translateY(-100%); } to { opacity: 1; transform: none; } }
+  @media (prefers-reduced-motion: reduce) { .install-bar { animation: none; } }
+  @media print { .install-bar { display: none !important; } }
   @media print { .reveal { opacity: 1 !important; } header.top { display: none !important; } }
 
   /* ministry identity touches: gradient line under the header and on the progress bar, plain logo, school card */
@@ -681,6 +693,12 @@
 <body>
 <div class="wrap">
 
+  <div id="installBar" class="install-bar no-print" hidden role="region" aria-label="تثبيت التطبيق">
+    <img src="icons/icon-192.png" alt="" width="36" height="36">
+    <div class="ib-txt"><b>ثبّت التطبيق على جوالك</b><span id="ibSub">يفتح أسرع مثل أي تطبيق، وبدون إنترنت.</span></div>
+    <button type="button" id="ibGo" class="ib-go">تثبيت</button>
+    <button type="button" id="ibX" class="ib-x" aria-label="إغلاق">&#215;</button>
+  </div>
   <header class="top">
     <img class="hdr-logo" src="icons/moe-logo.png" alt="وزارة التعليم">
     <div>
@@ -1924,6 +1942,23 @@ window.vwSchoolCard = function(){
   document.getElementById('schoolCard').classList.toggle('empty', !n);
 };
 window.vwSchoolCard();
+
+// ---------- install banner (dismissible, shown once in a while) ----------
+(function(){
+  const bar = document.getElementById('installBar'); if(!bar) return;
+  const go = document.getElementById('ibGo'), sub = document.getElementById('ibSub');
+  const standalone = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+  let hiddenUntil = 0; try{ hiddenUntil = +localStorage.getItem('installHideUntil') || 0; }catch(e){}
+  if(standalone || Date.now() < hiddenUntil) return;
+  const hide = days => { bar.hidden = true; try{ localStorage.setItem('installHideUntil', String(Date.now() + days * 864e5)); }catch(e){} };
+  document.getElementById('ibX').addEventListener('click', () => hide(30));
+  let ev = null;
+  window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); ev = e; go.hidden = false; sub.textContent = 'يفتح أسرع مثل أي تطبيق، وبدون إنترنت.'; setTimeout(() => { bar.hidden = false; }, 1200); });
+  go.addEventListener('click', async () => { if(!ev) return; ev.prompt(); try{ await ev.userChoice; }catch(e){} ev = null; bar.hidden = true; });
+  window.addEventListener('appinstalled', () => { bar.hidden = true; });
+  const ios = /iphone|ipad|ipod/i.test(navigator.userAgent) && !/crios|fxios/i.test(navigator.userAgent);
+  if(ios){ go.hidden = true; sub.textContent = 'اضغط زر المشاركة ثم «إضافة إلى الشاشة الرئيسية».'; setTimeout(() => { bar.hidden = false; }, 1200); }
+})();
 </script>
 </body>
 </html>
