@@ -1352,8 +1352,7 @@
       'أمثلة من البنك:',
       ex,
       '',
-      'شكل الإخراج: أعد كتلة JSON واحدة فقط بلا أي شرح قبلها أو بعدها، بالمفاتيح: name, level, desc, skills, tasks, days, hours.',
-      'وإن كانت لديك أداة create_opportunity فاستخدمها وأعطني الرابط الذي تعيده بدلاً من JSON.'
+      'شكل الإخراج: أعد كتلة JSON واحدة فقط بلا أي شرح قبلها أو بعدها، بالمفاتيح: name, level, desc, skills, tasks, days, hours.'
     ].join('\n');
   }
   // Lenient reader: replies copied out of chat apps often arrive with escaped brackets (\[ \]), smart quotes,
@@ -1433,7 +1432,7 @@
         w.append(ta, row, msg);
         return w;
       }},
-    {t:'الصق رد الذكاء الصناعي', h:'الصق الفرصة التي كتبها (JSON) أو الرابط الذي أعطاك إياه كلود.', done:true, label:'إضافة الفرصة إلى «فرصي» ✓',
+    {t:'الصق رد الذكاء الصناعي', h:'انسخ رد الذكاء الصناعي كما هو والصقه هنا. يعمل مع ChatGPT وGemini وClaude.', done:true, label:'إضافة الفرصة إلى «فرصي» ✓',
       why:'الصق رد الذكاء الصناعي للمتابعة', ok:() => !!aiParse(AIST.reply), action:aiImport,
       build:() => {
         const w = document.createElement('div'); w.className = 'field';
