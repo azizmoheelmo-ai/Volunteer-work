@@ -757,7 +757,6 @@
       <span><b>مساعدة الذكاء الصناعي</b><span class="d">أمر جاهز يكتب لك فرصة تطوعية في ChatGPT أو Gemini أو Claude</span></span>
       <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
     </button>
-    <button class="home-adv" id="homeAdv" type="button">فتح النموذج الكامل</button>
   </section>
 
   <div id="classicForm" hidden>
@@ -1345,7 +1344,7 @@
   const daysText = n => n === 1 ? 'يوم واحد' : n === 2 ? 'يومان' : n <= 10 ? n + ' أيام' : n + ' يوماً';
   const hrsText = n => n === 1 ? 'ساعة يومياً' : n === 2 ? 'ساعتان يومياً' : n + ' ساعات يومياً';
   const aiDur = () => AIST.dur < AIDUR.length ? AIDUR[AIST.dur] : {days:daysText(AIST.cd), hours:hrsText(AIST.ch)};
-  const AIST = {idea:'', dur:0, cd:3, ch:2, level:'', reply:''};
+  const AIST = {idea:'', dur:0, cd:3, ch:2, level:'عام', reply:''};
   function aiPrompt(){
     const d = aiDur();
     const ex = ['تنظيم الطابور الصباحي', 'مدرستي ترشّد'].map(n => OPPS.find(o => o.name === n && o.cat !== 'فرصي')).filter(Boolean)
@@ -1354,7 +1353,7 @@
       'أنت كاتب فرص تطوعية لطلاب المدارس في السعودية ضمن «بنك الفرص التطوعية المدرسية» (وزارة التعليم).',
       '',
       'اكتب فرصة تطوعية عن هذه الفكرة: «' + AIST.idea.trim() + '»',
-      'المستوى: ' + (AIST.level || 'اختر الأنسب (عام أو مهاري)') + '.',
+      'المستوى: ' + AIST.level + '.',
       'المدة: ' + d.days + '، ' + d.hours + ' (استخدم هاتين القيمتين كما هما في days وhours).',
       d.remote ? 'الفرصة تُنفَّذ عن بعد (عبر الإنترنت)، فاجعل مهامها قابلة للتنفيذ عن بعد وتحت إشراف المعلم.' : null,
       '',
@@ -1457,8 +1456,8 @@
         w.append(grid, c);
         return w;
       }},
-    {t:'ما مستوى الفرصة؟', h:'«مهاري» لما يحتاج مهارة خاصة كالإلقاء أو التصميم، وإلا فـ«عام».',
-      build:() => aiChoice([['', 'يقترح الذكاء', ''], ['عام', 'عام', ''], ['مهاري', 'مهاري', '']], () => AIST.level, v => { AIST.level = v; }, 'col3')},
+    {t:'ما مستوى الفرصة؟', h:'«مهاري» إذا احتاجت الفرصة مهارة خاصة كالإلقاء أو التصميم، وإلا فـ«عام».',
+      build:() => aiChoice([['عام', 'عام', ''], ['مهاري', 'مهاري', '']], () => AIST.level, v => { AIST.level = v; }, '')},
     {t:'أمرك جاهز', h:'انسخه وأرسله لأي ذكاء صناعي، ثم ارجع والصق رده.',
       build:() => {
         const w = document.createElement('div'), prompt = aiPrompt();
@@ -1539,7 +1538,7 @@
   };
   $('homeReport').addEventListener('click', () => { fresh(); begin(REPORT); });
   $('homeCert').addEventListener('click', () => { fresh(); state.gender = ''; state.studentName = ''; begin(CERT); });
-  $('homeAi').addEventListener('click', () => { AIST.idea = ''; AIST.dur = 0; AIST.cd = 3; AIST.ch = 2; AIST.level = ''; AIST.reply = ''; open(AI); });
+  $('homeAi').addEventListener('click', () => { AIST.idea = ''; AIST.dur = 0; AIST.cd = 3; AIST.ch = 2; AIST.level = 'عام'; AIST.reply = ''; open(AI); });
   $('schoolCard').addEventListener('click', () => open(SETTINGS, 0));
   if($('wzSchool')) $('wzSchool').addEventListener('click', () => { const back = STEPS, bi = idx; open(SETTINGS, 0, () => open(back, bi)); });
   window.vwWizard = { report: () => open(REPORT, REPORT.findIndex(x => x.review)) };
@@ -2072,11 +2071,6 @@ document.getElementById('copyLinkBtn').addEventListener('click', async ()=>{
 // ---------- home screen: show/hide, advanced form, fresh start ----------
 const homeEl = document.getElementById('home');
 const classicForm = document.getElementById('classicForm');
-const homeAdv = document.getElementById('homeAdv');
-homeAdv.addEventListener('click', ()=>{
-  classicForm.hidden = !classicForm.hidden;
-  homeAdv.textContent = classicForm.hidden ? 'فتح النموذج الكامل' : 'إخفاء النموذج الكامل';
-});
 // hide the home tiles while a finished report is shown
 document.getElementById('buildBtn').addEventListener('click', ()=>{
   if(!getOppName()) return;
