@@ -1317,11 +1317,20 @@
       'وإن كانت لديك أداة create_opportunity فاستخدمها وأعطني الرابط الذي تعيده بدلاً من JSON.'
     ].join('\n');
   }
+  // Lenient reader: replies copied out of chat apps often arrive with escaped brackets (\[ \]), smart quotes,
+  // hidden direction marks, a missing { }, or stray quotes, so strict JSON.parse alone is not enough.
   function aiParse(t){
     t = (t || '').trim(); if(!t) return null;
     const m = t.match(/[?&]add=([A-Za-z0-9_\-=]+)/); if(m) return {link:m[1]};
-    const a = t.indexOf('{'), b = t.lastIndexOf('}'); if(a < 0 || b < a) return null;
-    try{ const o = JSON.parse(t.slice(a, b + 1)); return o && typeof o.name === 'string' && o.name.trim() ? {opp:o} : null; }catch(e){ return null; }
+    t = t.replace(/[​-‏‪-‮⁦-⁩﻿]/g, '').replace(/[“”„«»]/g, '"')
+         .replace(/\\([\[\]{}_"*#])/g, '$1').replace(/```(?:json)?/gi, '');
+    const ok = o => o && typeof o.name === 'string' && o.name.trim() ? {opp:o} : null;
+    const a = t.indexOf('{'), b = t.lastIndexOf('}');
+    if(a > -1 && b > a){ try{ const r = ok(JSON.parse(t.slice(a, b + 1))); if(r) return r; }catch(e){} }
+    // fallback: pull each field out with regexes, whatever the surrounding junk is
+    const str = k => { const x = t.match(new RegExp('"' + k + '"\\s*:\\s*"((?:[^"\\\\]|\\\\.)*)"')); return x ? x[1].replace(/\\"/g, '"') : ''; };
+    const arr = k => { const x = t.match(new RegExp('"' + k + '"\\s*:\\s*\\[([\\s\\S]*?)\\]')); return x ? (x[1].match(/"((?:[^"\\\\]|\\\\.)*)"/g) || []).map(v => v.slice(1, -1).replace(/\\"/g, '"')) : []; };
+    return ok({name:str('name'), level:str('level'), desc:str('desc'), skills:arr('skills'), tasks:arr('tasks'), days:str('days'), hours:str('hours')});
   }
   function aiImport(){
     const r = aiParse(AIST.reply); if(!r) return;
