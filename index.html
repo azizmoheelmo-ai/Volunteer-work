@@ -1371,20 +1371,102 @@
       'شكل الإخراج: أعد كتلة JSON واحدة فقط بلا أي شرح قبلها أو بعدها، بالمفاتيح: name, level, desc, skills, tasks, days, hours.'
     ].filter(x => x !== null).join('\n');
   }
-  // Lenient reader: replies copied out of chat apps often arrive with escaped brackets (\[ \]), smart quotes,
-  // hidden direction marks, a missing { }, or stray quotes, so strict JSON.parse alone is not enough.
+  // Reader for the AI reply. Teachers paste whatever the chat app gave them: strict JSON, JSON with smart quotes
+  // or «» inside the text, JSON with Arabic keys, or plain/markdown text with headings like «المهارات:» and bullets.
+  // Several strategies run and the most complete result wins, so details are not lost when only the title parses.
+  const AIKEYS = {
+    name:['name','title','اسم الفرصة','عنوان الفرصة','الاسم','العنوان','الفرصة','اسم'],
+    level:['level','المستوى','مستوى الفرصة','النوع'],
+    desc:['desc','description','الوصف','وصف الفرصة','نبذة','وصف'],
+    skills:['skills','المهارات','المهارات المكتسبة','المهارات المطلوبة','مهارات'],
+    tasks:['tasks','steps','procedures','المهام','المهام المطلوبة','الإجراءات','إجراءات التنفيذ','الخطوات','خطوات التنفيذ','مهام','إجراءات','خطوات'],
+    days:['days','الأيام','عدد الأيام','أيام'],
+    hours:['hours','الساعات','عدد الساعات','ساعات']
+  };
+  const aiNorm = s => String(s).replace(/[ً-ْـ]/g, '').replace(/[أإآ]/g, 'ا').replace(/ى/g, 'ي').replace(/ة/g, 'ه').replace(/[\s_*#`>"'“”‘’«»:：\-]+/g, ' ').trim().toLowerCase();
+  const AIKEYMAP = {}; Object.keys(AIKEYS).forEach(k => AIKEYS[k].forEach(a => { AIKEYMAP[aiNorm(a)] = k; }));
+  const aiKey = s => AIKEYMAP[aiNorm(s)] || AIKEYMAP[aiNorm(String(s).replace(/[(（][^)）]*[)）]/g, ''))] || '';
+  const aiScore = o => o ? (o.name ? 1 : 0) + (o.desc ? 2 : 0) + Math.min(o.skills.length, 3) + Math.min(o.tasks.length, 4) * 2 : 0;
+  const aiShape = o => {
+    const s = v => Array.isArray(v) ? v.map(x => s(x)).filter(Boolean).join('، ') : (v == null || typeof v === 'object') ? '' : String(v).trim();
+    const l = v => (Array.isArray(v) ? v : typeof v === 'string' ? v.split(/\r?\n|[،؛;]/) : []).map(x => s(x).replace(/^\s*(?:[-*•▪●◦]|\d+\s*[.)\-–])\s*/, '').trim()).filter(Boolean);
+    return {name:s(o.name), level:s(o.level), desc:s(o.desc), skills:l(o.skills), tasks:l(o.tasks), days:s(o.days), hours:s(o.hours)};
+  };
+  // JSON-like object whose keys may be English or Arabic, possibly wrapped ({opportunity:{…}}) or inside an array
+  function aiFromObject(o, depth){
+    if(Array.isArray(o)) o = o.find(x => x && typeof x === 'object');
+    if(!o || typeof o !== 'object') return null;
+    const r = {}; Object.keys(o).forEach(k => { const m = aiKey(k); if(m && r[m] == null) r[m] = o[k]; });
+    if(r.name) return aiShape(r);
+    if((depth || 0) < 3) for(const k in o){ if(o[k] && typeof o[k] === 'object'){ const x = aiFromObject(o[k], (depth || 0) + 1); if(x) return x; } }
+    return null;
+  }
+  function aiTryJson(t){
+    const a = t.search(/[{\[]/); if(a < 0) return null;
+    const b = Math.max(t.lastIndexOf('}'), t.lastIndexOf(']'));
+    let s = t.slice(a, b + 1);
+    if(a > -1 && s[0] === '[' && !/^\[\s*[{"]/.test(s)) return null;
+    const tries = [s, s.replace(/[“”„]/g, '"'), s.replace(/[“”„«»]/g, '"')];
+    tries.push(...tries.map(x => x.replace(/,\s*([}\]])/g, '$1').replace(/'/g, '"')));
+    if(s[0] !== '{' && s[0] !== '[') tries.push('{' + s + '}');
+    for(const x of tries){ try{ const r = aiFromObject(JSON.parse(x)); if(r) return r; }catch(e){} }
+    return null;
+  }
+  // broken JSON (inner quotes, missing braces, one-line junk): find each key and cut the value at the next key
+  function aiTryLoose(t){
+    const names = Object.keys(AIKEYMAP).map(k => k.replace(/ /g, '\\s*')).sort((x, y) => y.length - x.length);
+    const keyRe = new RegExp('["“\'«*]*(' + names.join('|') + ')["”\'»*]*\\s*[:：]', 'gi');
+    const hits = []; let m;
+    while((m = keyRe.exec(t))){ const k = aiKey(m[1]); if(k) hits.push({k, from:m.index + m[0].length, at:m.index}); }
+    if(!hits.length) return null;
+    const r = {};
+    hits.forEach((h, i) => {
+      let v = t.slice(h.from, i + 1 < hits.length ? hits[i + 1].at : t.length);
+      if(r[h.k] != null) return;
+      v = v.replace(/[\s,،}\]]+$/, '').trim();
+      if(h.k === 'skills' || h.k === 'tasks'){
+        const inner = v.replace(/^\s*\[/, '');
+        const q = inner.match(/["“«]([\s\S]*?)["”»]\s*(?=,\s*["“«]|$)/g);
+        r[h.k] = q ? q.map(x => x.replace(/^["“«]|["”»]\s*$/g, '').trim()) : inner;
+      } else r[h.k] = v.replace(/^["“'«]+|["”'»]+$/g, '').replace(/\\"/g, '"').trim();
+    });
+    return r.name ? aiShape(r) : null;
+  }
+  // plain text / markdown: «الاسم: …» lines, «**المهام**» headings followed by bullets or numbered lines
+  function aiTryText(t){
+    const r = {}, cur = {k:''}; let first = '';
+    t.split(/\r?\n/).forEach(raw => {
+      const line = raw.replace(/^\s*(?:#+|>|[-*•▪●◦]|\d+\s*[.)\-–])?\s*/, '').trim(); if(!line) return;
+      const m = line.match(/^[*_`"“]*([^:：*_`"”\n]{1,30}?)[*_`"”]*\s*[:：]\s*(.*)$/);
+      const k = m ? aiKey(m[1]) : aiKey(line);
+      if(k && (m || line.length < 30)){
+        cur.k = k; const v = m ? m[2].replace(/^\*+|\*+$/g, '').trim() : '';
+        if(r[k] == null) r[k] = k === 'skills' || k === 'tasks' ? [] : '';
+        if(v) Array.isArray(r[k]) ? r[k].push(v) : (r[k] = v);
+        return;
+      }
+      if(!cur.k){ if(!first && line.length < 80) first = line; return; }
+      const val = line.replace(/\*\*/g, '').trim();
+      Array.isArray(r[cur.k]) ? r[cur.k].push(val) : (r[cur.k] = (r[cur.k] + ' ' + val).trim());
+    });
+    if(!r.name && first && (r.desc || r.tasks)) r.name = first.replace(/[*_#"“”«»]/g, '').trim();
+    return r.name ? aiShape(r) : null;
+  }
   function aiParse(t){
     t = (t || '').trim(); if(!t) return null;
     const m = t.match(/[?&]add=([A-Za-z0-9_\-=]+)/); if(m) return {link:m[1]};
-    t = t.replace(/[​-‏‪-‮⁦-⁩﻿]/g, '').replace(/[“”„«»]/g, '"')
-         .replace(/\\([\[\]{}_"*#])/g, '$1').replace(/```(?:json)?/gi, '');
-    const ok = o => o && typeof o.name === 'string' && o.name.trim() ? {opp:o} : null;
-    const a = t.indexOf('{'), b = t.lastIndexOf('}');
-    if(a > -1 && b > a){ try{ const r = ok(JSON.parse(t.slice(a, b + 1))); if(r) return r; }catch(e){} }
-    // fallback: pull each field out with regexes, whatever the surrounding junk is
-    const str = k => { const x = t.match(new RegExp('"' + k + '"\\s*:\\s*"((?:[^"\\\\]|\\\\.)*)"')); return x ? x[1].replace(/\\"/g, '"') : ''; };
-    const arr = k => { const x = t.match(new RegExp('"' + k + '"\\s*:\\s*\\[([\\s\\S]*?)\\]')); return x ? (x[1].match(/"((?:[^"\\\\]|\\\\.)*)"/g) || []).map(v => v.slice(1, -1).replace(/\\"/g, '"')) : []; };
-    return ok({name:str('name'), level:str('level'), desc:str('desc'), skills:arr('skills'), tasks:arr('tasks'), days:str('days'), hours:str('hours')});
+    t = t.replace(/[​-‏‪-‮⁦-⁩﻿ ]/g, ' ').replace(/\\([\[\]{}_"*#`])/g, '$1').replace(/```[a-z]*/gi, '');
+    let best = null;
+    [aiTryJson, aiTryLoose, aiTryText].forEach(f => { let o = null; try{ o = f(t); }catch(e){} if(aiScore(o) > aiScore(best)) best = o; });
+    return best && best.name ? {opp:best} : null;
+  }
+  // what the pasted reply contained, for the on-screen hint
+  function aiCheck(t){
+    const r = aiParse(t); if(!r) return t.trim() ? {state:'bad'} : {state:'none'};
+    if(r.link) return {state:'ok', text:'تم التعرف على رابط الفرصة ✓'};
+    const o = r.opp, miss = [!o.desc && 'الوصف', !o.skills.length && 'المهارات', !o.tasks.length && 'المهام'].filter(Boolean);
+    const got = 'تم التعرف على: «' + o.name + '»' + (o.desc ? '، الوصف' : '') + (o.skills.length ? '، ' + o.skills.length + ' مهارات' : '') + (o.tasks.length ? '، ' + o.tasks.length + ' مهام' : '');
+    return miss.length ? {state:'warn', text:got + '. لم أجد: ' + miss.join('، ') + ' — تأكد أنك نسخت الرد كاملاً.'} : {state:'ok', text:got + ' ✓'};
   }
   function aiImport(){
     const r = aiParse(AIST.reply); if(!r) return;
@@ -1479,9 +1561,11 @@
       why:'الصق رد الذكاء الصناعي للمتابعة', ok:() => !!aiParse(AIST.reply), action:aiImport,
       build:() => {
         const w = document.createElement('div'); w.className = 'field';
-        w.innerHTML = '<label for="aiReply">رد الذكاء الصناعي</label><textarea id="aiReply" class="ai-prompt" placeholder="الصق هنا…"></textarea>';
-        const i = w.querySelector('textarea'); i.value = AIST.reply;
-        i.addEventListener('input', () => { AIST.reply = i.value; });
+        w.innerHTML = '<label for="aiReply">رد الذكاء الصناعي</label><textarea id="aiReply" class="ai-prompt" placeholder="الصق هنا…"></textarea><div class="ai-msg" id="aiCheck" aria-live="polite"></div>';
+        const i = w.querySelector('textarea'), chk = w.querySelector('#aiCheck');
+        const note = () => { const c = aiCheck(AIST.reply); chk.textContent = c.text || (c.state === 'bad' ? 'لم أتعرف على فرصة في هذا النص. انسخ الرد كاملاً من الذكاء الصناعي.' : ''); chk.style.color = c.state === 'ok' ? '' : '#b45309'; };
+        i.value = AIST.reply; note();
+        i.addEventListener('input', () => { AIST.reply = i.value; note(); });
         return w;
       }}
   ];
